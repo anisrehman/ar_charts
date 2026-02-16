@@ -1,18 +1,31 @@
 # ar_charts
 
-A new Flutter plugin project.
+A Flutter charts library (line and bar charts) for Android and iOS.
+
+## About
+
+This plugin is a **wrapper** around two well-known native chart libraries:
+
+- **iOS**: [Charts](https://github.com/ChartsOrg/Charts) (ChartsOrg/Charts) — the Apple-side counterpart of MPAndroidChart.
+- **Android**: [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart) (PhilJay/MPAndroidChart) — the Android chart library.
 
 ## Getting Started
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+Add the dependency to your `pubspec.yaml`:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```yaml
+dependencies:
+  ar_charts: ^0.0.1
+```
 
-The plugin project was generated without specifying the `--platforms` flag, no platforms are currently supported.
-To add platforms, run `flutter create -t plugin --platforms <platforms> .` in this directory.
-You can also find a detailed instruction on how to add platforms in the `pubspec.yaml` at https://flutter.dev/to/pubspec-plugin-platforms.
+Or use a Git dependency:
+
+```yaml
+dependencies:
+  ar_charts:
+    git:
+      url: https://github.com/anisrehman/ar_charts.git
+      ref: main
+```
+
+See the `example` app in this repository for usage. For Flutter plugin development, see the [Flutter documentation](https://docs.flutter.dev/to/develop-plugins).

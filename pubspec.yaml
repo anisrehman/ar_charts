@@ -1,6 +1,6 @@
 name: ar_charts
 description: "A new Flutter plugin project."
-version: 1.0.0+1
+version: 0.0.1
 homepage:
 
 environment:
@@ -35,7 +35,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.example.ar_charts
+        package: com.anisrehman.archarts
         pluginClass: ARChartsPlugin
       ios:
         pluginClass: ARChartsPlugin

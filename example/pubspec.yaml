@@ -19,9 +19,7 @@ dependencies:
     sdk: flutter
 
   ar_charts:
-    git:
-      url: https://github.com/anisrehman/ar_charts.git
-      ref: main
+    path: ../
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -1,4 +1,4 @@
-package com.example.ar_charts
+package com.anisrehman.archarts
 
 import android.content.Context
 import android.view.View

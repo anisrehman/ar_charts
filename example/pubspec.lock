@@ -4,12 +4,10 @@ packages:
   ar_charts:
     dependency: "direct main"
     description:
-      path: "."
-      ref: main
-      resolved-ref: "2b22a9a9dccfc5d8218b22f8cccb3767fa3ac686"
-      url: "https://github.com/anisrehman/ar_charts.git"
-    source: git
-    version: "1.0.0+1"
+      path: ".."
+      relative: true
+    source: path
+    version: "0.0.1"
   async:
     dependency: transitive
     description:

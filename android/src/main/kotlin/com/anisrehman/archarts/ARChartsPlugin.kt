@@ -1,4 +1,4 @@
-package com.example.ar_charts
+package com.anisrehman.archarts
 
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin

@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace "com.example.ar_charts"
+    namespace "com.anisrehman.archarts"
     compileSdk 34
 
     defaultConfig {
