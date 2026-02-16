@@ -1,7 +1,8 @@
 name: ar_charts
 description: "A new Flutter plugin project."
 version: 0.0.1
-homepage:
+homepage: https://github.com/anisrehman/ar_charts
+repository: https://github.com/anisrehman/ar_charts
 
 environment:
   sdk: ^3.10.7
