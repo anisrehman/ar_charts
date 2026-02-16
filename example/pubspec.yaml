@@ -1,5 +1,5 @@
 name: ar_charts_example
-description: "Demonstrates how to use the ar_charts plugin."
+description: "Example app for the ar_charts Flutter plugin. Demonstrates line charts, bar charts, and grouped bar charts with configurable axes, legends, and interactions."
 version: 1.0.0+1
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
