@@ -87,12 +87,8 @@ class MyApp extends StatelessWidget {
                   labelCount: 6,
                 ),
                 leftAxis: const AxisConfig(
-                  min: 0,
-                  max: 100000,
-                  labelCount: 6,
-                  formatType: AxisValueFormatDecimal(2),
+                  formatType: AxisValueFormatCompact(),
                 ),
-                // rightAxis: const AxisConfig(enabled: false),
                 legend: const LegendConfig(
                   enabled: true,
                   position: LegendPosition.bottom,
