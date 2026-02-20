@@ -14,15 +14,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const totalPoints = 1000;
     final random = Random();
-    double price = 100;
+    // Y values above 1000 so compact formatter shows 1K, 10K, 50K, etc.
+    double y = 5000.0;
     final lineSeries = [
       LineSeries(
         id: 'price',
         label: 'Price',
         points: List.generate(totalPoints, (index) {
-          final delta = (random.nextDouble() - 0.5) * 2.0;
-          price = (price + delta).clamp(1.0, 200.0);
-          return LinePoint(x: index.toDouble(), y: price);
+          final delta = (random.nextDouble() - 0.5) * 3000.0;
+          y = (y + delta).clamp(1000.0, 100000.0);
+          return LinePoint(x: index.toDouble(), y: y);
         }),
       ),
     ];
@@ -85,7 +86,12 @@ class MyApp extends StatelessWidget {
                   max: totalPoints - 1,
                   labelCount: 6,
                 ),
-                leftAxis: const AxisConfig(),
+                leftAxis: const AxisConfig(
+                  min: 0,
+                  max: 100000,
+                  labelCount: 6,
+                  formatType: AxisValueFormatDecimal(2),
+                ),
                 // rightAxis: const AxisConfig(enabled: false),
                 legend: const LegendConfig(
                   enabled: true,

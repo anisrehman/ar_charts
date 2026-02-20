@@ -111,6 +111,9 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
         if let xAxis = axis as? XAxis, isXAxis {
             xAxis.labelPosition = .bottom
         }
+        if !isXAxis, let formatter = YAxisValueFormatter(axisMap: axisMap) {
+            axis.valueFormatter = formatter
+        }
     }
 
     private func applyLegend(legendMap: [String: Any]?) {
