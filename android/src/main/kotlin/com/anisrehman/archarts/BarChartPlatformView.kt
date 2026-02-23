@@ -141,6 +141,10 @@ class BarChartPlatformView(
         if (labelCount != null) {
             axis.setLabelCount(labelCount, true)
         }
+
+        YAxisValueFormatter.fromAxisMap(axisMap)?.let { formatter ->
+            axis.valueFormatter = formatter
+        }
     }
 
     private fun applyBarPointLabels(axis: XAxis, labelMap: Map<Int, String>) {

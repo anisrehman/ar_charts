@@ -143,6 +143,9 @@ class LineChartPlatformView(
             axis.setLabelCount(labelCount, true)
         }
 
+        YAxisValueFormatter.fromAxisMap(axisMap)?.let { formatter ->
+            axis.valueFormatter = formatter
+        }
     }
 
     private fun applyLegend(legendMap: Map<String, Any?>?) {

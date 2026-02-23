@@ -245,6 +245,34 @@ class BarPoint {
   }
 }
 
+/// Format for axis value labels (e.g. Y-axis). Use [AxisValueFormat.compact]
+/// for large numbers (1K, 1.5M) or [AxisValueFormat.decimal] for fixed decimals.
+sealed class AxisValueFormat {
+  const AxisValueFormat();
+}
+
+/// No custom formatting; use chart default numeric labels.
+class AxisValueFormatNone extends AxisValueFormat {
+  const AxisValueFormatNone();
+}
+
+/// Compact notation: 1000 → "1K", 1_500_000 → "1.5M", 1e9 → "1B".
+class AxisValueFormatCompact extends AxisValueFormat {
+  const AxisValueFormatCompact();
+}
+
+/// Fixed decimal places, e.g. [decimals] = 2 → "1.23".
+class AxisValueFormatDecimal extends AxisValueFormat {
+  const AxisValueFormatDecimal(this.decimals);
+  final int decimals;
+}
+
+/// Percentage: append "%", e.g. 50 → "50%", 50.5 → "50.5%". [decimals] defaults to 1.
+class AxisValueFormatPercent extends AxisValueFormat {
+  const AxisValueFormatPercent([this.decimals = 1]);
+  final int decimals;
+}
+
 class AxisConfig {
   const AxisConfig({
     this.enabled = true,
@@ -254,6 +282,7 @@ class AxisConfig {
     this.labelCount,
     this.drawGridLines = true,
     this.drawAxisLine = true,
+    this.formatType,
   });
 
   final bool enabled;
@@ -263,8 +292,26 @@ class AxisConfig {
   final int? labelCount;
   final bool drawGridLines;
   final bool drawAxisLine;
+  /// Optional formatter for axis value labels (Y-axis only). E.g. [axisValueFormatCompact].
+  final AxisValueFormat? formatType;
 
   Map<String, Object?> toMap() {
+    final String? formatTypeValue = formatType == null ||
+            formatType is AxisValueFormatNone
+        ? null
+        : formatType is AxisValueFormatCompact
+            ? 'compact'
+            : formatType is AxisValueFormatDecimal
+                ? 'decimal'
+                : formatType is AxisValueFormatPercent
+                    ? 'percent'
+                    : null;
+    final int? formatTypeDecimals =
+        formatType is AxisValueFormatDecimal
+            ? (formatType as AxisValueFormatDecimal).decimals
+            : formatType is AxisValueFormatPercent
+                ? (formatType as AxisValueFormatPercent).decimals
+                : null;
     return {
       'enabled': enabled,
       'label': label,
@@ -273,6 +320,8 @@ class AxisConfig {
       'labelCount': labelCount,
       'drawGridLines': drawGridLines,
       'drawAxisLine': drawAxisLine,
+      'formatType': formatTypeValue,
+      'formatTypeDecimals': formatTypeDecimals,
     };
   }
 }
