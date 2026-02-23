@@ -10,8 +10,6 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.github.mikephil.charting.utils.MPPointF
-import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.highlight.Highlight
 import io.flutter.plugin.platform.PlatformView
 
@@ -222,7 +220,7 @@ class BarChartPlatformView(
         val enabled = markerMap["enabled"] as? Boolean ?: false
         if (!enabled) return
         val format = markerMap["format"] as? String
-        chart.marker = BarChartMarkerView(chart.context, format)
+        chart.marker = ChartMarkerView(chart.context, format)
     }
 
     private fun applyAnimation(animationMap: Map<String, Any?>?) {
@@ -237,27 +235,4 @@ class BarChartPlatformView(
     }
 
     private enum class AxisType { X, Y }
-}
-
-private class BarChartMarkerView(
-    context: Context,
-    private val format: String?
-) : MarkerView(context, R.layout.ar_charts_marker_view) {
-
-    private val textView = findViewById<android.widget.TextView>(R.id.markerText)
-
-    override fun refreshContent(e: com.github.mikephil.charting.data.Entry?, highlight: Highlight?) {
-        if (e != null) {
-            val template = format ?: "x: {x}, y: {y}"
-            val text = template
-                .replace("{x}", e.x.toString())
-                .replace("{y}", e.y.toString())
-            textView.text = text
-        }
-        super.refreshContent(e, highlight)
-    }
-
-    override fun getOffset(): MPPointF {
-        return MPPointF(-(width / 2f), -height.toFloat())
-    }
 }
