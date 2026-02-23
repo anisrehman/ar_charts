@@ -12,12 +12,13 @@ final class ChartMarkerView: MarkerView {
     init(format: String?) {
         self.format = format
         super.init(frame: CGRect(x: 0, y: 0, width: 40, height: 20))
+        backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        layer.cornerRadius = 4
+        layer.masksToBounds = true
         textLabel.textColor = .white
         textLabel.font = .systemFont(ofSize: 12)
         textLabel.textAlignment = .center
-        textLabel.backgroundColor = UIColor.black.withAlphaComponent(0.8)
-        textLabel.layer.cornerRadius = 4
-        textLabel.layer.masksToBounds = true
+        textLabel.backgroundColor = .clear
         textLabel.numberOfLines = 1
         addSubview(textLabel)
     }
