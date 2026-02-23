@@ -201,18 +201,6 @@ cd example && flutter run
 
 ---
 
-## Generating API docs
-
-From the package root:
-
-```bash
-dart doc .
-```
-
-Output is in `doc/api/`. Open `doc/api/index.html` in a browser.
-
----
-
 ## License
 
 See the repository for license information.
