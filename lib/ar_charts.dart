@@ -1,9 +1,24 @@
-// You have generated a new plugin project without specifying the `--platforms`
-// flag. A plugin project with no platform support was generated. To add a
-// platform, run `flutter create -t plugin --platforms <platforms> .` under the
-// same directory. You can also find a detailed instruction on how to add
-// platforms in the `pubspec.yaml` at
-// https://flutter.dev/to/pubspec-plugin-platforms.
+/// Flutter charts library for Android and iOS.
+///
+/// Provides [LineChart] and [BarChart] widgets that wrap native chart libraries
+/// (MPAndroidChart on Android, Charts on iOS). Supports configurable axes,
+/// legends, interactions (zoom, drag, highlight), markers, and animations.
+///
+/// Example:
+/// ```dart
+/// LineChart(
+///   series: [
+///     LineSeries(
+///       id: 'series1',
+///       label: 'Series 1',
+///       points: [LinePoint(x: 0, y: 10), LinePoint(x: 1, y: 20)],
+///     ),
+///   ],
+///   height: 280,
+///   xAxis: const AxisConfig(min: 0, max: 2),
+/// )
+/// ```
+library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +26,9 @@ import 'package:flutter/services.dart';
 
 import 'ar_charts_platform_interface.dart';
 
+/// Entry point for platform-specific functionality (e.g. [getPlatformVersion]).
 class ArCharts {
+  /// Returns the current platform version string (Android/iOS).
   Future<String?> getPlatformVersion() {
     return ArChartsPlatform.instance.getPlatformVersion();
   }
@@ -20,6 +37,12 @@ class ArCharts {
 const String _lineChartViewType = 'ar_charts/line_chart';
 const String _barChartViewType = 'ar_charts/bar_chart';
 
+/// A line chart widget that renders one or more [LineSeries] using the native
+/// chart engine (MPAndroidChart on Android, Charts on iOS).
+///
+/// Use [series] for data. Optionally configure [xAxis], [leftAxis], [rightAxis],
+/// [legend], [interaction], [viewport], [marker], and [animation]. [height] and
+/// [padding] control layout. On unsupported platforms (e.g. web) renders nothing.
 class LineChart extends StatelessWidget {
   const LineChart({
     super.key,
@@ -49,7 +72,11 @@ class LineChart extends StatelessWidget {
   final ViewportConfig? viewport;
   final MarkerConfig? marker;
   final AnimationConfig? animation;
+
+  /// Fixed height of the chart; if null, only [padding] affects size.
   final double? height;
+
+  /// Padding around the native chart view.
   final EdgeInsets? padding;
 
   @override
@@ -103,6 +130,11 @@ class LineChart extends StatelessWidget {
   }
 }
 
+/// A bar chart widget that renders one or more [BarSeries] using the native
+/// chart engine. Use [barGroup] with [BarGroupConfig] for grouped bars.
+///
+/// Optionally configure [xAxis], [leftAxis], [rightAxis], [legend], [interaction],
+/// [marker], and [animation]. On unsupported platforms (e.g. web) renders nothing.
 class BarChart extends StatelessWidget {
   const BarChart({
     super.key,
@@ -136,7 +168,11 @@ class BarChart extends StatelessWidget {
   final MarkerConfig? marker;
   final AnimationConfig? animation;
   final BarGroupConfig? barGroup;
+
+  /// Fixed height of the chart; if null, only [padding] affects size.
   final double? height;
+
+  /// Padding around the native chart view.
   final EdgeInsets? padding;
 
   @override
@@ -190,11 +226,17 @@ class BarChart extends StatelessWidget {
   }
 }
 
+/// A single line series: unique [id], optional [label] for legend, and [points].
 class LineSeries {
   const LineSeries({required this.id, required this.points, this.label});
 
+  /// Unique identifier; used for [LineChart.perSeriesStyle] lookup.
   final String id;
+
+  /// Optional label shown in the legend.
   final String? label;
+
+  /// Data points (x, y) for this series.
   final List<LinePoint> points;
 
   Map<String, Object?> toMap() {
@@ -206,11 +248,17 @@ class LineSeries {
   }
 }
 
+/// A single bar series: unique [id], optional [label] for legend, and [points].
 class BarSeries {
   const BarSeries({required this.id, required this.points, this.label});
 
+  /// Unique identifier; used for [BarChart.perSeriesStyle] and [BarGroupConfig].
   final String id;
+
+  /// Optional label shown in the legend.
   final String? label;
+
+  /// Data points (x, y, optional label) for this series.
   final List<BarPoint> points;
 
   Map<String, Object?> toMap() {
@@ -222,6 +270,7 @@ class BarSeries {
   }
 }
 
+/// One (x, y) point for a [LineSeries].
 class LinePoint {
   const LinePoint({required this.x, required this.y});
 
@@ -233,11 +282,14 @@ class LinePoint {
   }
 }
 
+/// One (x, y) bar with optional [label] for axis or tooltip.
 class BarPoint {
   const BarPoint({required this.x, required this.y, this.label});
 
   final double x;
   final double y;
+
+  /// Optional label (e.g. day name) for the X axis or marker.
   final String? label;
 
   Map<String, Object?> toMap() {
@@ -245,8 +297,8 @@ class BarPoint {
   }
 }
 
-/// Format for axis value labels (e.g. Y-axis). Use [AxisValueFormat.compact]
-/// for large numbers (1K, 1.5M) or [AxisValueFormat.decimal] for fixed decimals.
+/// Format for axis value labels (e.g. Y-axis). Use [AxisValueFormatCompact]
+/// for large numbers (1K, 1.5M) or [AxisValueFormatDecimal] for fixed decimals.
 sealed class AxisValueFormat {
   const AxisValueFormat();
 }
@@ -273,6 +325,8 @@ class AxisValueFormatPercent extends AxisValueFormat {
   final int decimals;
 }
 
+/// Configuration for an axis (X, left Y, or right Y): visibility, label, range,
+/// label count, grid/axis lines, and optional [formatType] for value labels.
 class AxisConfig {
   const AxisConfig({
     this.enabled = true,
@@ -292,7 +346,7 @@ class AxisConfig {
   final int? labelCount;
   final bool drawGridLines;
   final bool drawAxisLine;
-  /// Optional formatter for axis value labels (Y-axis only). E.g. [axisValueFormatCompact].
+  /// Optional formatter for axis value labels (Y-axis only). E.g. [AxisValueFormatCompact].
   final AxisValueFormat? formatType;
 
   Map<String, Object?> toMap() {
@@ -326,6 +380,7 @@ class AxisConfig {
   }
 }
 
+/// Style for a line series: color, width, circles, optional value labels, cubic curve.
 class LineStyle {
   const LineStyle({
     required this.lineColor,
@@ -358,6 +413,7 @@ class LineStyle {
   }
 }
 
+/// Style for a bar series: color, width, optional value-on-bar labels.
 class BarStyle {
   const BarStyle({
     required this.barColor,
@@ -378,6 +434,7 @@ class BarStyle {
   }
 }
 
+/// Configuration for grouped bars when using multiple [BarSeries]: spacing and labels.
 class BarGroupConfig {
   const BarGroupConfig({
     this.enabled = false,
@@ -407,6 +464,7 @@ class BarGroupConfig {
   }
 }
 
+/// Legend visibility, [position] (top/bottom/left/right), and [alignment].
 class LegendConfig {
   const LegendConfig({
     this.enabled = true,
@@ -427,10 +485,13 @@ class LegendConfig {
   }
 }
 
+/// Where the legend is placed relative to the chart.
 enum LegendPosition { top, bottom, left, right }
 
+/// How the legend is aligned within its position.
 enum LegendAlignment { start, center, end }
 
+/// Zoom, drag, and tap-highlight behavior for the chart.
 class InteractionConfig {
   const InteractionConfig({
     this.zoomEnabled = false,
@@ -451,6 +512,7 @@ class InteractionConfig {
   }
 }
 
+/// Visible X range and offsets for [LineChart]; useful with zoom/drag.
 class ViewportConfig {
   const ViewportConfig({
     this.visibleXRangeMin,
@@ -481,10 +543,13 @@ class ViewportConfig {
   }
 }
 
+/// Popover on tap showing value; [format] can use `{x}` and `{y}` placeholders.
 class MarkerConfig {
   const MarkerConfig({this.enabled = false, this.format});
 
   final bool enabled;
+
+  /// Format string, e.g. `'x: {x}, y: {y}'`.
   final String? format;
 
   Map<String, Object?> toMap() {
@@ -492,6 +557,7 @@ class MarkerConfig {
   }
 }
 
+/// Entrance animation: [durationMs] and [easing].
 class AnimationConfig {
   const AnimationConfig({
     this.enabled = false,
@@ -512,4 +578,5 @@ class AnimationConfig {
   }
 }
 
+/// Easing for [AnimationConfig].
 enum AnimationEasing { easeInOut, linear }
