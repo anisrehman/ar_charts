@@ -10,19 +10,43 @@ class LineChartExamplePage extends StatelessWidget {
   Widget build(BuildContext context) {
     const totalPoints = 1000;
     final random = Random();
-    // Y values above 1000 so compact formatter shows 1K, 10K, 50K, etc.
-    double y = 5000.0;
+    // Line 1: Y values above 1000 so compact formatter shows 1K, 10K, 50K, etc.
+    double y1 = 5000.0;
+    final series1 = List.generate(totalPoints, (index) {
+      final delta = (random.nextDouble() - 0.5) * 3000.0;
+      y1 = (y1 + delta).clamp(1000.0, 100000.0);
+      return LinePoint(x: index.toDouble(), y: y1);
+    });
+    // Line 2: Different random walk, offset range
+    double y2 = 30000.0;
+    final series2 = List.generate(totalPoints, (index) {
+      final delta = (random.nextDouble() - 0.5) * 2000.0;
+      y2 = (y2 + delta).clamp(5000.0, 80000.0);
+      return LinePoint(x: index.toDouble(), y: y2);
+    });
     final lineSeries = [
-      LineSeries(
-        id: 'price',
-        label: 'Price',
-        points: List.generate(totalPoints, (index) {
-          final delta = (random.nextDouble() - 0.5) * 3000.0;
-          y = (y + delta).clamp(1000.0, 100000.0);
-          return LinePoint(x: index.toDouble(), y: y);
-        }),
-      ),
+      LineSeries(id: 'price', label: 'Price', points: series1),
+      LineSeries(id: 'volume', label: 'Volume', points: series2),
     ];
+
+    final lineStyles = {
+      'price': const LineStyle(
+        lineColor: Colors.blue,
+        lineWidth: 2,
+        drawCircles: true,
+        circleRadius: 0,
+        drawValues: false,
+        cubic: true,
+      ),
+      'volume': const LineStyle(
+        lineColor: Colors.orange,
+        lineWidth: 2,
+        drawCircles: true,
+        circleRadius: 0,
+        drawValues: false,
+        cubic: true,
+      ),
+    };
 
     return Scaffold(
       appBar: AppBar(title: const Text('Line Chart')),
@@ -65,7 +89,7 @@ class LineChartExamplePage extends StatelessWidget {
             drawValues: false,
             cubic: true,
           ),
-          perSeriesStyle: const {},
+          perSeriesStyle: lineStyles,
         ),
       ),
     );
