@@ -1,16 +1,18 @@
 import Foundation
 import DGCharts
 
-/// Formats Y-axis values: compact (1K, 1.5M, 1T), decimal, or percent.
-/// Shared by BarChart and LineChart platform views.
+/// Formats axis values: compact (1K, 1.5M, 1T), decimal, percent, or date.
+/// Shared by BarChart and LineChart platform views (X and Y axes).
 final class YAxisValueFormatter: NSObject, AxisValueFormatter {
     private let formatType: String
     private let decimals: Int
+    private let dateFormatPattern: String
 
     init?(axisMap: [String: Any]) {
         guard let type = axisMap["formatType"] as? String, type != "none" else { return nil }
         self.formatType = type
         self.decimals = axisMap["formatTypeDecimals"] as? Int ?? 1
+        self.dateFormatPattern = axisMap["formatPattern"] as? String ?? "MMM d"
     }
 
     func stringForValue(_ value: Double, axis: AxisBase?) -> String {
@@ -21,9 +23,19 @@ final class YAxisValueFormatter: NSObject, AxisValueFormatter {
             return String(format: "%.\(decimals)f", value)
         case "percent":
             return String(format: "%.\(decimals)f%%", value)
+        case "date":
+            return Self.formatDate(millisSinceEpoch: value, pattern: dateFormatPattern)
         default:
             return "\(value)"
         }
+    }
+
+    private static func formatDate(millisSinceEpoch: Double, pattern: String) -> String {
+        let date = Date(timeIntervalSince1970: millisSinceEpoch / 1000)
+        let formatter = DateFormatter()
+        formatter.dateFormat = pattern
+        formatter.locale = Locale.current
+        return formatter.string(from: date)
     }
 
     private static func formatCompact(_ value: Double) -> String {

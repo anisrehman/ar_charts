@@ -114,7 +114,7 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView {
         if let xAxis = axis as? XAxis, isXAxis {
             xAxis.labelPosition = .bottom
         }
-        if !isXAxis, let formatter = YAxisValueFormatter(axisMap: axisMap) {
+        if let formatter = YAxisValueFormatter(axisMap: axisMap) {
             axis.valueFormatter = formatter
         }
     }

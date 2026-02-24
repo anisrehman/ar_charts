@@ -8,21 +8,32 @@ class LineChartExamplePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const totalPoints = 1000;
+    const totalPoints = 60;
     final random = Random();
+    final startDate = DateTime.now().subtract(const Duration(days: totalPoints - 1));
+    final endDate = DateTime.now();
+
     // Line 1: Y values above 1000 so compact formatter shows 1K, 10K, 50K, etc.
     double y1 = 5000.0;
     final series1 = List.generate(totalPoints, (index) {
+      final date = startDate.add(Duration(days: index));
       final delta = (random.nextDouble() - 0.5) * 3000.0;
       y1 = (y1 + delta).clamp(1000.0, 100000.0);
-      return LinePoint(x: index.toDouble(), y: y1);
+      return LinePoint(
+        x: date.millisecondsSinceEpoch.toDouble(),
+        y: y1,
+      );
     });
     // Line 2: Different random walk, offset range
     double y2 = 30000.0;
     final series2 = List.generate(totalPoints, (index) {
+      final date = startDate.add(Duration(days: index));
       final delta = (random.nextDouble() - 0.5) * 2000.0;
       y2 = (y2 + delta).clamp(5000.0, 80000.0);
-      return LinePoint(x: index.toDouble(), y: y2);
+      return LinePoint(
+        x: date.millisecondsSinceEpoch.toDouble(),
+        y: y2,
+      );
     });
     final lineSeries = [
       LineSeries(id: 'price', label: 'Price', points: series1),
@@ -55,10 +66,11 @@ class LineChartExamplePage extends StatelessWidget {
         child: LineChart(
           series: lineSeries,
           height: 280,
-          xAxis: const AxisConfig(
-            min: 0,
-            max: totalPoints - 1,
+          xAxis: AxisConfig(
+            min: startDate.millisecondsSinceEpoch.toDouble(),
+            max: endDate.millisecondsSinceEpoch.toDouble(),
             labelCount: 6,
+            formatType: const AxisValueFormatDate('MMM d'),
           ),
           leftAxis: const AxisConfig(
             formatType: AxisValueFormatCompact(),

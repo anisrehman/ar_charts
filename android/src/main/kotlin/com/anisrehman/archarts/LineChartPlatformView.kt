@@ -123,6 +123,9 @@ class LineChartPlatformView(
         if (type == AxisType.X) {
             axis.position = XAxis.XAxisPosition.BOTTOM
         }
+        YAxisValueFormatter.fromAxisMap(axisMap)?.let { formatter ->
+            axis.valueFormatter = formatter
+        }
     }
 
     private fun applyAxis(axis: YAxis, axisMap: Map<String, Any?>?, type: AxisType) {
