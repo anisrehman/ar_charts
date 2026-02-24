@@ -79,7 +79,7 @@ class LineChartExamplePage extends StatelessWidget {
           ),
           marker: const MarkerConfig(
             enabled: true,
-            format: 'x: {x}, y: {y}',
+            format: 'x: {x}\ny: {y}',
           ),
           defaultLineStyle: const LineStyle(
             lineColor: Colors.blue,

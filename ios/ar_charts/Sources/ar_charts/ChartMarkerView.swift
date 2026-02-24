@@ -19,7 +19,7 @@ final class ChartMarkerView: MarkerView {
         textLabel.font = .systemFont(ofSize: 12)
         textLabel.textAlignment = .center
         textLabel.backgroundColor = .clear
-        textLabel.numberOfLines = 1
+        textLabel.numberOfLines = 0
         addSubview(textLabel)
     }
 
@@ -29,14 +29,16 @@ final class ChartMarkerView: MarkerView {
 
     override func refreshContent(entry: ChartDataEntry, highlight: Highlight) {
         let template = format ?? "x: {x}, y: {y}"
-        let text = template
+        var text = template
             .replacingOccurrences(of: "{x}", with: Self.formatLikeAndroid(entry.x))
             .replacingOccurrences(of: "{y}", with: Self.formatLikeAndroid(entry.y))
+        text = text.replacingOccurrences(of: "\\n", with: "\n")
         textLabel.text = text
-        textLabel.sizeToFit()
+        let maxLabelWidth: CGFloat = 220
+        let labelSize = textLabel.sizeThatFits(CGSize(width: maxLabelWidth, height: .greatestFiniteMagnitude))
         let p = Self.padding
-        bounds = CGRect(x: 0, y: 0, width: textLabel.bounds.width + 2 * p, height: textLabel.bounds.height + 2 * p)
-        textLabel.frame = CGRect(x: p, y: p, width: textLabel.bounds.width, height: textLabel.bounds.height)
+        bounds = CGRect(x: 0, y: 0, width: labelSize.width + 2 * p, height: labelSize.height + 2 * p)
+        textLabel.frame = CGRect(x: p, y: p, width: labelSize.width, height: labelSize.height)
     }
 
     /// Formats a number for marker display: whole numbers as "1.0", decimals limited to 2 places (e.g. 25886.45).
