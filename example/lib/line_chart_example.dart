@@ -51,7 +51,7 @@ class LineChartExamplePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Line Chart')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(0),
         child: LineChart(
           series: lineSeries,
           height: 280,

@@ -27,7 +27,11 @@ internal class ChartMarkerView(
         super.refreshContent(e, highlight)
     }
 
+    /** Vertical gap (dp) between the data point and the marker so the point stays visible. */
+    private val verticalGapPx: Float
+        get() = 8f * resources.displayMetrics.density
+
     override fun getOffset(): MPPointF {
-        return MPPointF(-(width / 2f), -height.toFloat())
+        return MPPointF(-(width / 2f), -(height + verticalGapPx))
     }
 }

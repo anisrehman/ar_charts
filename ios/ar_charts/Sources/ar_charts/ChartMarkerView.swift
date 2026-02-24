@@ -57,7 +57,34 @@ final class ChartMarkerView: MarkerView {
         return s
     }
 
+    /// Vertical gap between the data point and the marker so the point stays visible.
+    private static let verticalGap: CGFloat = 8
+
     override func offsetForDrawing(atPoint point: CGPoint) -> CGPoint {
-        return CGPoint(x: -bounds.width / 2, y: -bounds.height)
+        let width = bounds.width
+        let height = bounds.height
+        let gap = Self.verticalGap
+        var offsetX = -width / 2
+        var offsetY = -height - gap
+
+        guard let chart = chartView else {
+            return CGPoint(x: offsetX, y: offsetY)
+        }
+        let chartWidth = chart.bounds.width
+        let chartHeight = chart.bounds.height
+
+        if point.x + offsetX < 0 {
+            offsetX = -point.x
+        } else if point.x + width + offsetX > chartWidth {
+            offsetX = chartWidth - point.x - width
+        }
+
+        if point.y + offsetY < 0 {
+            offsetY = -point.y
+        } else if point.y + height + offsetY > chartHeight {
+            offsetY = chartHeight - point.y - height
+        }
+
+        return CGPoint(x: offsetX, y: offsetY)
     }
 }
