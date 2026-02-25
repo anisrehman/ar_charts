@@ -559,17 +559,17 @@ class ViewportConfig {
   }
 }
 
-/// Popover on tap showing value; [format] can use `{x}` and `{y}` placeholders.
+/// Popover on tap showing value. Layout is fixed: first line shows the x-axis
+/// value; following lines show each series that has a point at that x with a
+/// colored bullet (matching the line/bar) and formatted y. Only series with
+/// a value at the highlighted x are listed.
 class MarkerConfig {
-  const MarkerConfig({this.enabled = false, this.format});
+  const MarkerConfig({this.enabled = false});
 
   final bool enabled;
 
-  /// Format string, e.g. `'x: {x}, y: {y}'`.
-  final String? format;
-
   Map<String, Object?> toMap() {
-    return {'enabled': enabled, 'format': format};
+    return {'enabled': enabled};
   }
 }
 

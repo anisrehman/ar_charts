@@ -55,10 +55,7 @@ class GroupedBarChartExamplePage extends StatelessWidget {
             enabled: true,
             durationMs: 700,
           ),
-          marker: const MarkerConfig(
-            enabled: true,
-            format: 'x: {x}, y: {y}',
-          ),
+          marker: const MarkerConfig(enabled: true),
           barGroup: const BarGroupConfig(
             enabled: true,
             groupSpace: 0.2,

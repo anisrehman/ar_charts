@@ -212,8 +212,7 @@ class LineChartPlatformView(
         if (markerMap == null) return
         val enabled = markerMap["enabled"] as? Boolean ?: false
         if (!enabled) return
-        val format = markerMap["format"] as? String
-        val marker = ChartMarkerView(chart.context, format)
+        val marker = ChartMarkerView(chart.context)
         marker.chartView = chart
         chart.marker = marker
     }
