@@ -325,6 +325,15 @@ class AxisValueFormatPercent extends AxisValueFormat {
   final int decimals;
 }
 
+/// Date: treat axis value as milliseconds since epoch and format as date.
+/// Use for x-axis (e.g. [LineChart]) when [LinePoint.x] is from
+/// [DateTime.millisecondsSinceEpoch]. [formatPattern] is optional (e.g. 'MMM d',
+/// 'yyyy-MM-dd'); when null, platform uses a short date style.
+class AxisValueFormatDate extends AxisValueFormat {
+  const AxisValueFormatDate([this.formatPattern]);
+  final String? formatPattern;
+}
+
 /// Configuration for an axis (X, left Y, or right Y): visibility, label, range,
 /// label count, grid/axis lines, and optional [formatType] for value labels.
 class AxisConfig {
@@ -346,7 +355,7 @@ class AxisConfig {
   final int? labelCount;
   final bool drawGridLines;
   final bool drawAxisLine;
-  /// Optional formatter for axis value labels (Y-axis only). E.g. [AxisValueFormatCompact].
+  /// Optional formatter for axis value labels (e.g. X-axis dates, Y-axis compact/decimal/percent).
   final AxisValueFormat? formatType;
 
   Map<String, Object?> toMap() {
@@ -359,13 +368,19 @@ class AxisConfig {
                 ? 'decimal'
                 : formatType is AxisValueFormatPercent
                     ? 'percent'
-                    : null;
+                    : formatType is AxisValueFormatDate
+                        ? 'date'
+                        : null;
     final int? formatTypeDecimals =
         formatType is AxisValueFormatDecimal
             ? (formatType as AxisValueFormatDecimal).decimals
             : formatType is AxisValueFormatPercent
                 ? (formatType as AxisValueFormatPercent).decimals
                 : null;
+    final String? formatPattern =
+        formatType is AxisValueFormatDate
+            ? (formatType as AxisValueFormatDate).formatPattern
+            : null;
     return {
       'enabled': enabled,
       'label': label,
@@ -376,6 +391,7 @@ class AxisConfig {
       'drawAxisLine': drawAxisLine,
       'formatType': formatTypeValue,
       'formatTypeDecimals': formatTypeDecimals,
+      'formatPattern': formatPattern,
     };
   }
 }

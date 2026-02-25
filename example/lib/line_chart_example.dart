@@ -8,33 +8,69 @@ class LineChartExamplePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const totalPoints = 1000;
+    const totalPoints = 60;
     final random = Random();
-    // Y values above 1000 so compact formatter shows 1K, 10K, 50K, etc.
-    double y = 5000.0;
+    final startDate = DateTime.now().subtract(const Duration(days: totalPoints - 1));
+    final endDate = DateTime.now();
+
+    // Line 1: Y values above 1000 so compact formatter shows 1K, 10K, 50K, etc.
+    double y1 = 5000.0;
+    final series1 = List.generate(totalPoints, (index) {
+      final date = startDate.add(Duration(days: index));
+      final delta = (random.nextDouble() - 0.5) * 3000.0;
+      y1 = (y1 + delta).clamp(1000.0, 100000.0);
+      return LinePoint(
+        x: date.millisecondsSinceEpoch.toDouble(),
+        y: y1,
+      );
+    });
+    // Line 2: Different random walk, offset range
+    double y2 = 30000.0;
+    final series2 = List.generate(totalPoints, (index) {
+      final date = startDate.add(Duration(days: index));
+      final delta = (random.nextDouble() - 0.5) * 2000.0;
+      y2 = (y2 + delta).clamp(5000.0, 80000.0);
+      return LinePoint(
+        x: date.millisecondsSinceEpoch.toDouble(),
+        y: y2,
+      );
+    });
     final lineSeries = [
-      LineSeries(
-        id: 'price',
-        label: 'Price',
-        points: List.generate(totalPoints, (index) {
-          final delta = (random.nextDouble() - 0.5) * 3000.0;
-          y = (y + delta).clamp(1000.0, 100000.0);
-          return LinePoint(x: index.toDouble(), y: y);
-        }),
-      ),
+      LineSeries(id: 'price', label: 'Price', points: series1),
+      LineSeries(id: 'volume', label: 'Volume', points: series2),
     ];
+
+    final lineStyles = {
+      'price': const LineStyle(
+        lineColor: Colors.blue,
+        lineWidth: 2,
+        drawCircles: true,
+        circleRadius: 0,
+        drawValues: false,
+        cubic: true,
+      ),
+      'volume': const LineStyle(
+        lineColor: Colors.orange,
+        lineWidth: 2,
+        drawCircles: true,
+        circleRadius: 0,
+        drawValues: false,
+        cubic: true,
+      ),
+    };
 
     return Scaffold(
       appBar: AppBar(title: const Text('Line Chart')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(0),
         child: LineChart(
           series: lineSeries,
           height: 280,
-          xAxis: const AxisConfig(
-            min: 0,
-            max: totalPoints - 1,
+          xAxis: AxisConfig(
+            min: startDate.millisecondsSinceEpoch.toDouble(),
+            max: endDate.millisecondsSinceEpoch.toDouble(),
             labelCount: 6,
+            formatType: const AxisValueFormatDate('MMM d'),
           ),
           leftAxis: const AxisConfig(
             formatType: AxisValueFormatCompact(),
@@ -55,7 +91,7 @@ class LineChartExamplePage extends StatelessWidget {
           ),
           marker: const MarkerConfig(
             enabled: true,
-            format: 'x: {x}, y: {y}',
+            format: 'x: {x}\ny: {y}',
           ),
           defaultLineStyle: const LineStyle(
             lineColor: Colors.blue,
@@ -65,7 +101,7 @@ class LineChartExamplePage extends StatelessWidget {
             drawValues: false,
             cubic: true,
           ),
-          perSeriesStyle: const {},
+          perSeriesStyle: lineStyles,
         ),
       ),
     );

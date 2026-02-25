@@ -9,8 +9,6 @@ import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.utils.MPPointF
-import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.highlight.Highlight
 import io.flutter.plugin.platform.PlatformView
 
@@ -125,6 +123,9 @@ class LineChartPlatformView(
         if (type == AxisType.X) {
             axis.position = XAxis.XAxisPosition.BOTTOM
         }
+        YAxisValueFormatter.fromAxisMap(axisMap)?.let { formatter ->
+            axis.valueFormatter = formatter
+        }
     }
 
     private fun applyAxis(axis: YAxis, axisMap: Map<String, Any?>?, type: AxisType) {
@@ -212,7 +213,9 @@ class LineChartPlatformView(
         val enabled = markerMap["enabled"] as? Boolean ?: false
         if (!enabled) return
         val format = markerMap["format"] as? String
-        chart.marker = LineChartMarkerView(chart.context, format)
+        val marker = ChartMarkerView(chart.context, format)
+        marker.chartView = chart
+        chart.marker = marker
     }
 
     private fun applyAnimation(animationMap: Map<String, Any?>?) {
@@ -227,27 +230,4 @@ class LineChartPlatformView(
     }
 
     private enum class AxisType { X, Y }
-}
-
-private class LineChartMarkerView(
-    context: Context,
-    private val format: String?
-) : MarkerView(context, R.layout.ar_charts_marker_view) {
-
-    private val textView = findViewById<android.widget.TextView>(R.id.markerText)
-
-    override fun refreshContent(e: Entry?, highlight: Highlight?) {
-        if (e != null) {
-            val template = format ?: "x: {x}, y: {y}"
-            val text = template
-                .replace("{x}", e.x.toString())
-                .replace("{y}", e.y.toString())
-            textView.text = text
-        }
-        super.refreshContent(e, highlight)
-    }
-
-    override fun getOffset(): MPPointF {
-        return MPPointF(-(width / 2f), -height.toFloat())
-    }
 }

@@ -111,7 +111,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
         if let xAxis = axis as? XAxis, isXAxis {
             xAxis.labelPosition = .bottom
         }
-        if !isXAxis, let formatter = YAxisValueFormatter(axisMap: axisMap) {
+        if let formatter = YAxisValueFormatter(axisMap: axisMap) {
             axis.valueFormatter = formatter
         }
     }
@@ -186,7 +186,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
         let enabled = markerMap["enabled"] as? Bool ?? false
         if !enabled { return }
         let format = markerMap["format"] as? String
-        let marker = LineChartMarkerView(format: format)
+        let marker = ChartMarkerView(format: format)
         marker.chartView = chartView
         chartView.marker = marker
     }
@@ -203,50 +203,5 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
         default:
             chartView.animate(xAxisDuration: duration, easingOption: .easeInOutQuad)
         }
-    }
-}
-
-final class LineChartMarkerView: MarkerView {
-    private let format: String?
-    private let textLabel = UILabel()
-
-    init(format: String?) {
-        self.format = format
-        super.init(frame: CGRect(x: 0, y: 0, width: 120, height: 28))
-        textLabel.textColor = .white
-        textLabel.font = .systemFont(ofSize: 12)
-        textLabel.textAlignment = .center
-        textLabel.backgroundColor = UIColor.black.withAlphaComponent(0.8)
-        textLabel.layer.cornerRadius = 4
-        textLabel.layer.masksToBounds = true
-        textLabel.frame = bounds
-        addSubview(textLabel)
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func refreshContent(entry: ChartDataEntry, highlight: Highlight) {
-        let template = format ?? "x: {x}, y: {y}"
-        let text = template
-            .replacingOccurrences(of: "{x}", with: String(entry.x))
-            .replacingOccurrences(of: "{y}", with: String(entry.y))
-        textLabel.text = text
-        layoutSubviews()
-    }
-
-    override func offsetForDrawing(atPoint point: CGPoint) -> CGPoint {
-        return CGPoint(x: -bounds.width / 2, y: -bounds.height)
-    }
-}
-
-private extension UIColor {
-    convenience init(argb: Int) {
-        let alpha = CGFloat((argb >> 24) & 0xFF) / 255.0
-        let red = CGFloat((argb >> 16) & 0xFF) / 255.0
-        let green = CGFloat((argb >> 8) & 0xFF) / 255.0
-        let blue = CGFloat(argb & 0xFF) / 255.0
-        self.init(red: red, green: green, blue: blue, alpha: alpha)
     }
 }
