@@ -34,4 +34,28 @@ internal class ChartMarkerView(
     override fun getOffset(): MPPointF {
         return MPPointF(-(width / 2f), -(height + verticalGapPx))
     }
+
+    override fun getOffsetForDrawingAtPoint(posX: Float, posY: Float): MPPointF {
+        // Center marker on point: center X, place above point
+        var offsetX = -(width / 2f)
+        var offsetY = -(height + verticalGapPx)
+        val chart = chartView ?: return MPPointF(offsetX, offsetY)
+        val vph = chart.viewPortHandler
+        val contentLeft = vph.contentLeft()
+        val contentRight = vph.contentRight()
+        val contentTop = vph.contentTop()
+        val contentBottom = vph.contentBottom()
+        // Clamp horizontal: if marker would extend past content bounds, shift center X so it stays inside
+        if (posX + offsetX < contentLeft) {
+            offsetX = contentLeft - posX
+        } else if (posX + offsetX + width > contentRight) {
+            offsetX = contentRight - posX - width
+        }
+        if (posY + offsetY < contentTop) {
+            offsetY = contentTop - posY
+        } else if (posY + offsetY + height > contentBottom) {
+            offsetY = contentBottom - posY - height
+        }
+        return MPPointF(offsetX, offsetY)
+    }
 }

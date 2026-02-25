@@ -213,7 +213,9 @@ class LineChartPlatformView(
         val enabled = markerMap["enabled"] as? Boolean ?: false
         if (!enabled) return
         val format = markerMap["format"] as? String
-        chart.marker = ChartMarkerView(chart.context, format)
+        val marker = ChartMarkerView(chart.context, format)
+        marker.chartView = chart
+        chart.marker = marker
     }
 
     private fun applyAnimation(animationMap: Map<String, Any?>?) {
