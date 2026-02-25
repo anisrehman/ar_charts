@@ -7,6 +7,7 @@ import DGCharts
 final class ChartMarkerView: MarkerView {
     private static let padding: CGFloat = 6
 
+    private let containerView = UIView()
     private let textLabel = UILabel()
 
     override init(frame: CGRect) {
@@ -24,15 +25,23 @@ final class ChartMarkerView: MarkerView {
     }
 
     private func commonInit() {
-        backgroundColor = UIColor.black.withAlphaComponent(0.8)
-        layer.cornerRadius = 4
-        layer.masksToBounds = true
+        backgroundColor = .clear
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowRadius = 4
+        layer.shadowOpacity = 0.25
+
+        containerView.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        containerView.layer.cornerRadius = 4
+        containerView.layer.masksToBounds = true
+        addSubview(containerView)
+
         textLabel.textColor = .white
         textLabel.font = .systemFont(ofSize: 12)
         textLabel.textAlignment = .natural
         textLabel.backgroundColor = .clear
         textLabel.numberOfLines = 0
-        addSubview(textLabel)
+        containerView.addSubview(textLabel)
     }
 
     override func refreshContent(entry: ChartDataEntry, highlight: Highlight) {
@@ -78,6 +87,7 @@ final class ChartMarkerView: MarkerView {
         let labelSize = textLabel.sizeThatFits(CGSize(width: maxLabelWidth, height: .greatestFiniteMagnitude))
         let p = Self.padding
         bounds = CGRect(x: 0, y: 0, width: labelSize.width + 2 * p, height: labelSize.height + 2 * p)
+        containerView.frame = CGRect(origin: .zero, size: bounds.size)
         textLabel.frame = CGRect(x: p, y: p, width: labelSize.width, height: labelSize.height)
         super.refreshContent(entry: entry, highlight: highlight)
     }
