@@ -197,8 +197,7 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView {
         guard let markerMap else { return }
         let enabled = markerMap["enabled"] as? Bool ?? false
         if !enabled { return }
-        let format = markerMap["format"] as? String
-        let marker = ChartMarkerView(format: format)
+        let marker = ChartMarkerView()
         marker.chartView = chartView
         chartView.marker = marker
     }

@@ -42,10 +42,7 @@ class BarChartExamplePage extends StatelessWidget {
             enabled: true,
             durationMs: 700,
           ),
-          marker: const MarkerConfig(
-            enabled: true,
-            format: 'x: {x}, y: {y}',
-          ),
+          marker: const MarkerConfig(enabled: true),
           defaultBarStyle: const BarStyle(
             barColor: Colors.orange,
             barWidth: 0.6,

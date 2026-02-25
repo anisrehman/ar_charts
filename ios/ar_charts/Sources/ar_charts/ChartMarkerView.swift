@@ -1,53 +1,95 @@
 import UIKit
 import DGCharts
 
-/// Shared marker view for line and bar charts. Displays entry values using optional `{x}` and `{y}` format.
+/// Shared marker view for line and bar charts. Shows x-axis value on the first line,
+/// then each series that has a point at that x with a colored bullet and formatted y.
 /// Sizes to content with 6pt padding (matches Android 6dp).
 final class ChartMarkerView: MarkerView {
     private static let padding: CGFloat = 6
 
-    private let format: String?
+    private let containerView = UIView()
     private let textLabel = UILabel()
 
-    init(format: String?) {
-        self.format = format
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        commonInit()
+    }
+
+    init() {
         super.init(frame: CGRect(x: 0, y: 0, width: 40, height: 20))
-        backgroundColor = UIColor.black.withAlphaComponent(0.8)
-        layer.cornerRadius = 4
-        layer.masksToBounds = true
-        textLabel.textColor = .white
-        textLabel.font = .systemFont(ofSize: 12)
-        textLabel.textAlignment = .center
-        textLabel.backgroundColor = .clear
-        textLabel.numberOfLines = 0
-        addSubview(textLabel)
+        commonInit()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
+    private func commonInit() {
+        backgroundColor = .clear
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowRadius = 4
+        layer.shadowOpacity = 0.25
+
+        containerView.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        containerView.layer.cornerRadius = 4
+        containerView.layer.masksToBounds = true
+        addSubview(containerView)
+
+        textLabel.textColor = .white
+        textLabel.font = .systemFont(ofSize: 12)
+        textLabel.textAlignment = .natural
+        textLabel.backgroundColor = .clear
+        textLabel.numberOfLines = 0
+        containerView.addSubview(textLabel)
+    }
+
     override func refreshContent(entry: ChartDataEntry, highlight: Highlight) {
-        let xFormatted: String
-        let yFormatted: String
-        if let chart = chartView as? BarLineChartViewBase {
-            xFormatted = chart.xAxis.valueFormatter?.stringForValue(entry.x, axis: chart.xAxis) ?? Self.formatLikeAndroid(entry.x)
-            yFormatted = chart.leftAxis.valueFormatter?.stringForValue(entry.y, axis: chart.leftAxis) ?? Self.formatLikeAndroid(entry.y)
-        } else {
-            xFormatted = Self.formatLikeAndroid(entry.x)
-            yFormatted = Self.formatLikeAndroid(entry.y)
+        guard let chart = chartView as? BarLineChartViewBase,
+              let data = chart.data else {
+            textLabel.attributedText = nil
+            super.refreshContent(entry: entry, highlight: highlight)
+            return
         }
-        let template = format ?? "x: {x}, y: {y}"
-        var text = template
-            .replacingOccurrences(of: "{x}", with: xFormatted)
-            .replacingOccurrences(of: "{y}", with: yFormatted)
-        text = text.replacingOccurrences(of: "\\n", with: "\n")
-        textLabel.text = text
+        let refX = highlight.x
+        let xFormatted = chart.xAxis.valueFormatter?.stringForValue(refX, axis: chart.xAxis)
+            ?? Self.formatLikeAndroid(refX)
+        let yAxis = chart.leftAxis
+        let yFormatter = yAxis.valueFormatter
+        let bullet: Character = "\u{2022}"
+        let attr = NSMutableAttributedString()
+        let textColor = textLabel.textColor ?? .white
+        attr.append(NSAttributedString(
+            string: xFormatted,
+            attributes: [.foregroundColor: textColor]
+        ))
+        for dataSet in data.dataSets {
+            guard let entryAtX = dataSet.entryForXValue(refX, closestToY: .nan, rounding: .closest) else {
+                continue
+            }
+            if abs(entryAtX.x - refX) > 0.001 {
+                continue
+            }
+            let yFormatted = yFormatter?.stringForValue(entryAtX.y, axis: yAxis)
+                ?? Self.formatLikeAndroid(entryAtX.y)
+            let label = dataSet.label ?? ""
+            let color = dataSet.colors.first ?? .gray
+            attr.append(NSAttributedString(string: "\n"))
+            let bulletStart = attr.length
+            attr.append(NSAttributedString(string: String(bullet), attributes: [.foregroundColor: color]))
+            attr.append(NSAttributedString(
+                string: " \(label): \(yFormatted)",
+                attributes: [.foregroundColor: textColor]
+            ))
+        }
+        textLabel.attributedText = attr
         let maxLabelWidth: CGFloat = 220
         let labelSize = textLabel.sizeThatFits(CGSize(width: maxLabelWidth, height: .greatestFiniteMagnitude))
         let p = Self.padding
         bounds = CGRect(x: 0, y: 0, width: labelSize.width + 2 * p, height: labelSize.height + 2 * p)
+        containerView.frame = CGRect(origin: .zero, size: bounds.size)
         textLabel.frame = CGRect(x: p, y: p, width: labelSize.width, height: labelSize.height)
+        super.refreshContent(entry: entry, highlight: highlight)
     }
 
     /// Formats a number for marker display: whole numbers as "1.0", decimals limited to 2 places (e.g. 25886.45).

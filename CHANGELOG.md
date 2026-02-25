@@ -1,3 +1,11 @@
+## 0.1.0
+
+* First minor release.
+* Line and bar charts with configurable axes, legends, and interactions.
+* Markers with formatted text, multiline tooltips, and platform-specific layout fixes.
+* Date formatter support on x-axis.
+* Android and iOS native chart engines (MPAndroidChart, Charts).
+
 ## 0.0.5
 
 * Marker shows formatted text.

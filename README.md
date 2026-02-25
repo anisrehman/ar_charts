@@ -30,7 +30,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ar_charts: ^0.0.2
+  ar_charts: ^0.1.0
 ```
 
 Or from Git:
@@ -169,7 +169,7 @@ BarChart(
 | `LegendConfig` | Both | enabled, position (top/bottom/left/right), alignment (start/center/end). |
 | `InteractionConfig` | Both | zoomEnabled, dragEnabled, highlightEnabled. |
 | `ViewportConfig` | LineChart | visibleXRangeMin/Max, initialX, viewPortOffsets. |
-| `MarkerConfig` | Both | enabled, format string (e.g. `'x: {x}, y: {y}'`). |
+| `MarkerConfig` | Both | enabled; tooltip shows x on first line, then each series at that x with colored bullet and y. |
 | `AnimationConfig` | Both | enabled, durationMs, easing (easeInOut, linear). |
 
 ### LineChart-only

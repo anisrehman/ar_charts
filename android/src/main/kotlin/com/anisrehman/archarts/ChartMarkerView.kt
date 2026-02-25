@@ -1,35 +1,64 @@
 package com.anisrehman.archarts
 
-import android.content.Context
+import android.graphics.Color
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import com.github.mikephil.charting.charts.BarLineChartBase
 import com.github.mikephil.charting.components.MarkerView
+import com.github.mikephil.charting.data.DataSet
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.interfaces.datasets.IBarLineScatterCandleBubbleDataSet
 import com.github.mikephil.charting.utils.MPPointF
+import kotlin.math.abs
 
 /**
- * Shared marker view for line and bar charts. Displays entry values using optional `{x}` and `{y}` format.
+ * Shared marker view for line and bar charts. Shows x-axis value on the first line,
+ * then each series that has a point at that x with a colored bullet and formatted y.
  */
 internal class ChartMarkerView(
-    context: Context,
-    private val format: String?
+    context: android.content.Context
 ) : MarkerView(context, R.layout.ar_charts_marker_view) {
 
     private val textView = findViewById<android.widget.TextView>(R.id.markerText)
 
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
-        if (e != null) {
-            val chart = chartView
-            val xFormatted = chart?.xAxis?.valueFormatter?.getAxisLabel(e.x, chart.xAxis)
-                ?: e.x.toString()
-            val barLineChart = chart as? BarLineChartBase<*>
-            val yFormatted = barLineChart?.axisLeft?.valueFormatter?.getAxisLabel(e.y, barLineChart.axisLeft)
-                ?: e.y.toString()
-            val template = format ?: "x: {x}, y: {y}"
-            val text = template
-                .replace("{x}", xFormatted)
-                .replace("{y}", yFormatted)
-            textView.text = text
+        if (e != null && highlight != null) {
+            val chart = chartView as? BarLineChartBase<*>
+            val data = chart?.data
+            if (chart != null && data != null) {
+                val refX = highlight.x
+                val xFormatted = chart.xAxis.valueFormatter?.getAxisLabel(refX, chart.xAxis)
+                    ?: refX.toString()
+                val yAxis = chart.axisLeft
+                val yFormatter = yAxis.valueFormatter
+                val bullet = '\u2022'
+                val sb = SpannableStringBuilder()
+                sb.append(xFormatted)
+                for (ds in data.dataSets) {
+                    val entry = ds.getEntryForXValue(refX, Float.NaN, DataSet.Rounding.CLOSEST)
+                        ?: continue
+                    if (abs(entry.x - refX) > 0.001f) continue
+                    val yFormatted = yFormatter?.getAxisLabel(entry.y, yAxis) ?: entry.y.toString()
+                    val label = ds.label ?: ""
+                    val color = (ds as? IBarLineScatterCandleBubbleDataSet<*>)?.getColor(0) ?: Color.GRAY
+                    val lineStart = sb.length
+                    sb.append('\n')
+                    sb.append(bullet)
+                    sb.setSpan(
+                        ForegroundColorSpan(color),
+                        lineStart + 1,
+                        lineStart + 2,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    sb.append(" ")
+                    sb.append(label)
+                    sb.append(": ")
+                    sb.append(yFormatted)
+                }
+                textView.text = sb
+            }
         }
         super.refreshContent(e, highlight)
     }
