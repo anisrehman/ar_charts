@@ -30,7 +30,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ar_charts: ^0.0.2
+  ar_charts: ^0.1.0
 ```
 
 Or from Git:
