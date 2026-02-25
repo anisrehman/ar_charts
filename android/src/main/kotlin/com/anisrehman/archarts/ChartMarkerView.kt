@@ -1,6 +1,7 @@
 package com.anisrehman.archarts
 
 import android.content.Context
+import com.github.mikephil.charting.charts.BarLineChartBase
 import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
@@ -18,10 +19,16 @@ internal class ChartMarkerView(
 
     override fun refreshContent(e: Entry?, highlight: Highlight?) {
         if (e != null) {
+            val chart = chartView
+            val xFormatted = chart?.xAxis?.valueFormatter?.getAxisLabel(e.x, chart.xAxis)
+                ?: e.x.toString()
+            val barLineChart = chart as? BarLineChartBase<*>
+            val yFormatted = barLineChart?.axisLeft?.valueFormatter?.getAxisLabel(e.y, barLineChart.axisLeft)
+                ?: e.y.toString()
             val template = format ?: "x: {x}, y: {y}"
             val text = template
-                .replace("{x}", e.x.toString())
-                .replace("{y}", e.y.toString())
+                .replace("{x}", xFormatted)
+                .replace("{y}", yFormatted)
             textView.text = text
         }
         super.refreshContent(e, highlight)

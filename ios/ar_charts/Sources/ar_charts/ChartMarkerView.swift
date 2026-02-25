@@ -28,10 +28,19 @@ final class ChartMarkerView: MarkerView {
     }
 
     override func refreshContent(entry: ChartDataEntry, highlight: Highlight) {
+        let xFormatted: String
+        let yFormatted: String
+        if let chart = chartView as? BarLineChartViewBase {
+            xFormatted = chart.xAxis.valueFormatter?.stringForValue(entry.x, axis: chart.xAxis) ?? Self.formatLikeAndroid(entry.x)
+            yFormatted = chart.leftAxis.valueFormatter?.stringForValue(entry.y, axis: chart.leftAxis) ?? Self.formatLikeAndroid(entry.y)
+        } else {
+            xFormatted = Self.formatLikeAndroid(entry.x)
+            yFormatted = Self.formatLikeAndroid(entry.y)
+        }
         let template = format ?? "x: {x}, y: {y}"
         var text = template
-            .replacingOccurrences(of: "{x}", with: Self.formatLikeAndroid(entry.x))
-            .replacingOccurrences(of: "{y}", with: Self.formatLikeAndroid(entry.y))
+            .replacingOccurrences(of: "{x}", with: xFormatted)
+            .replacingOccurrences(of: "{y}", with: yFormatted)
         text = text.replacingOccurrences(of: "\\n", with: "\n")
         textLabel.text = text
         let maxLabelWidth: CGFloat = 220
