@@ -26,6 +26,36 @@ Other platforms (web, desktop) are not supported; the chart widgets render an em
 
 ## Installation
 
+### Android: add JitPack repository (required)
+
+The Android chart engine ([MPAndroidChart](https://github.com/PhilJay/MPAndroidChart)) is published on JitPack. **Before** adding the package, add the JitPack repository to your Android project.
+
+**If your Android project uses Kotlin DSL** (`build.gradle.kts` in the project root, e.g. `android/build.gradle.kts` or `android/settings.gradle.kts`), add:
+
+```kotlin
+repositories {
+    google()
+    mavenCentral()
+    maven("https://jitpack.io")
+}
+```
+
+**If your Android project uses Groovy** (`build.gradle`), add:
+
+```groovy
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+
+Put this in the same place where you already have `google()` and `mavenCentral()` (e.g. in `allprojects { repositories { ... } }` in the root `build.gradle`, or in `pluginManagement { repositories { ... } }` / root `repositories { ... }` in `settings.gradle` / `settings.gradle.kts`).
+
+### Add the package
+
 Add to your `pubspec.yaml`:
 
 ```yaml
