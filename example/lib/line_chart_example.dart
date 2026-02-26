@@ -48,7 +48,7 @@ class LineChartExamplePage extends StatelessWidget {
         circleRadius: 0,
         drawValues: false,
         cubic: true,
-        fill: LineFillSolid(),
+        fill: LineFillSolid(color: Colors.blue),
       ),
       'volume': const LineStyle(
         lineColor: Colors.orange,
