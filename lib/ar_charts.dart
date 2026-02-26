@@ -396,6 +396,23 @@ class AxisConfig {
   }
 }
 
+/// Fill type for the area under a line. [LineFillGradient] is not yet implemented on native.
+sealed class LineFill {
+  const LineFill();
+}
+
+/// Solid fill under the line. [color] is the fill color; when null, native uses line color with alpha.
+class LineFillSolid extends LineFill {
+  const LineFillSolid({this.color});
+
+  final Color? color;
+}
+
+/// Gradient fill under the line. Not yet implemented on native.
+class LineFillGradient extends LineFill {
+  const LineFillGradient();
+}
+
 /// Style for a line series: color, width, circles, optional value labels, cubic curve.
 class LineStyle {
   const LineStyle({
@@ -406,6 +423,7 @@ class LineStyle {
     this.circleRadius = 4,
     this.drawValues = false,
     this.cubic = false,
+    this.fill,
   });
 
   final Color lineColor;
@@ -415,9 +433,10 @@ class LineStyle {
   final double circleRadius;
   final bool drawValues;
   final bool cubic;
+  final LineFill? fill;
 
   Map<String, Object?> toMap() {
-    return {
+    final map = <String, Object?>{
       'lineColor': lineColor.value,
       'lineWidth': lineWidth,
       'drawCircles': drawCircles,
@@ -426,6 +445,19 @@ class LineStyle {
       'drawValues': drawValues,
       'cubic': cubic,
     };
+    if (fill != null) {
+      final fillKind = switch (fill!) {
+        LineFillSolid() => 'solid',
+        LineFillGradient() => 'gradient',
+      };
+      map['fill'] = fillKind;
+      final fillColor = switch (fill!) {
+        LineFillSolid(:final color) => color?.toARGB32(),
+        LineFillGradient() => null,
+      };
+      if (fillColor != null) map['fillColor'] = fillColor;
+    }
+    return map;
   }
 }
 

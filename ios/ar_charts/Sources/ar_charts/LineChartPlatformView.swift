@@ -96,6 +96,20 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
         if let cubic = styleMap["cubic"] as? Bool, cubic == true {
             dataSet.mode = .cubicBezier
         }
+        // Solid fill only when fill is non-null (gradient treated as solid until implemented). Same alpha (0.2) as Android.
+        let fill = styleMap["fill"] as? String
+        if fill == "solid" || fill == "gradient" {
+            dataSet.drawFilledEnabled = true
+            let fillColor: UIColor
+            if let fillColorArgb = styleMap["fillColor"] as? Int {
+                fillColor = UIColor(argb: fillColorArgb)
+            } else if let lineColorArgb = styleMap["lineColor"] as? Int {
+                fillColor = UIColor(argb: lineColorArgb).withAlphaComponent(0.2)
+            } else {
+                fillColor = (dataSet.colors.first ?? .black).withAlphaComponent(0.2)
+            }
+            dataSet.fill = ColorFill(color: fillColor)
+        }
     }
 
     private func applyAxis(axis: AxisBase, axisMap: [String: Any]?, isXAxis: Bool) {

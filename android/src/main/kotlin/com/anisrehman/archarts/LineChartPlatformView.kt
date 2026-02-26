@@ -102,6 +102,21 @@ class LineChartPlatformView(
         if (cubic == true) {
             dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
         }
+        // Solid fill only when fill is non-null (gradient treated as solid until implemented). Same alpha (0.2) as iOS.
+        val fill = styleMap["fill"] as? String
+        if (fill == "solid" || fill == "gradient") {
+            dataSet.setDrawFilled(true)
+            val fillColorExplicit = (styleMap["fillColor"] as? Number)?.toInt()
+            val fillColor = if (fillColorExplicit != null) {
+                fillColorExplicit
+            } else {
+                val baseColor = lineColor ?: dataSet.color
+                val fillAlpha = 51 // 0.2
+                (fillAlpha shl 24) or (baseColor and 0x00FFFFFF)
+            }
+            dataSet.setFillColor(fillColor)
+            //dataSet.setFillAlpha(51)
+        }
     }
 
     private fun applyAxis(axis: XAxis, axisMap: Map<String, Any?>?, type: AxisType) {

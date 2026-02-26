@@ -48,6 +48,7 @@ class LineChartExamplePage extends StatelessWidget {
         circleRadius: 0,
         drawValues: false,
         cubic: true,
+        fill: LineFillSolid(),
       ),
       'volume': const LineStyle(
         lineColor: Colors.orange,
@@ -56,6 +57,7 @@ class LineChartExamplePage extends StatelessWidget {
         circleRadius: 0,
         drawValues: false,
         cubic: true,
+        fill: LineFillSolid(color: Color(0xFFFF9800)), // orange with alpha
       ),
     };
 
@@ -97,6 +99,7 @@ class LineChartExamplePage extends StatelessWidget {
             circleRadius: 0,
             drawValues: false,
             cubic: true,
+            fill: LineFillSolid(),
           ),
           perSeriesStyle: lineStyles,
         ),
