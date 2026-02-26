@@ -102,9 +102,8 @@ class LineChartPlatformView(
         if (cubic == true) {
             dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
         }
-        // Solid fill only when fill is non-null (gradient treated as solid until implemented). Same alpha (0.2) as iOS.
         val fill = styleMap["fill"] as? String
-        if (fill == "solid" || fill == "gradient") {
+        if (fill == "solid") {
             dataSet.setDrawFilled(true)
             val fillColorExplicit = (styleMap["fillColor"] as? Number)?.toInt()
             val fillColor = if (fillColorExplicit != null) {
@@ -115,7 +114,20 @@ class LineChartPlatformView(
                 (fillAlpha shl 24) or (baseColor and 0x00FFFFFF)
             }
             dataSet.setFillColor(fillColor)
-            //dataSet.setFillAlpha(51)
+        } else if (fill == "gradient") {
+            dataSet.setDrawFilled(true)
+            val lineColorArgb = (styleMap["lineColor"] as? Number)?.toInt() ?: 0xFF000000.toInt()
+            val topArgb = (styleMap["fillColorTop"] as? Number)?.toInt() ?: lineColorArgb
+            val bottomArgb = (styleMap["fillColorBottom"] as? Number)?.toInt() ?: 0
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                val gradientDrawable = android.graphics.drawable.GradientDrawable(
+                    android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                    intArrayOf(topArgb, bottomArgb)
+                )
+                dataSet.fillDrawable = gradientDrawable
+            } else {
+                dataSet.setFillColor(topArgb)
+            }
         }
     }
 

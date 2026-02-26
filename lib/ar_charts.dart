@@ -396,7 +396,7 @@ class AxisConfig {
   }
 }
 
-/// Fill type for the area under a line. [LineFillGradient] is not yet implemented on native.
+/// Fill type for the area under a line.
 sealed class LineFill {
   const LineFill();
 }
@@ -408,9 +408,18 @@ class LineFillSolid extends LineFill {
   final Color? color;
 }
 
-/// Gradient fill under the line. Not yet implemented on native.
+/// Gradient fill under the line (vertical: top to bottom).
+///
+/// [colorTop] is the color at the top (under the line); when null, native uses [LineStyle.lineColor].
+/// [colorBottom] is the color at the bottom (e.g. transparent); when null, native uses fully transparent.
 class LineFillGradient extends LineFill {
-  const LineFillGradient();
+  const LineFillGradient({this.colorTop, this.colorBottom});
+
+  /// Color at the top of the fill (under the line).
+  final Color? colorTop;
+
+  /// Color at the bottom of the fill (e.g. [Colors.transparent]).
+  final Color? colorBottom;
 }
 
 /// Style for a line series: color, width, circles, optional value labels, cubic curve.
@@ -446,16 +455,16 @@ class LineStyle {
       'cubic': cubic,
     };
     if (fill != null) {
-      final fillKind = switch (fill!) {
-        LineFillSolid() => 'solid',
-        LineFillGradient() => 'gradient',
-      };
-      map['fill'] = fillKind;
-      final fillColor = switch (fill!) {
-        LineFillSolid(:final color) => color?.toARGB32(),
-        LineFillGradient() => null,
-      };
-      if (fillColor != null) map['fillColor'] = fillColor;
+      switch (fill!) {
+        case LineFillSolid(:final color):
+          map['fill'] = 'solid';
+          final fillColor = color?.toARGB32();
+          if (fillColor != null) map['fillColor'] = fillColor;
+        case LineFillGradient(:final colorTop, :final colorBottom):
+          map['fill'] = 'gradient';
+          map['fillColorTop'] = colorTop?.toARGB32() ?? lineColor.toARGB32();
+          map['fillColorBottom'] = colorBottom?.toARGB32() ?? 0;
+      }
     }
     return map;
   }
