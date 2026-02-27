@@ -1,3 +1,9 @@
+## 0.1.1
+
+* Added line area fill support for line charts (`LineFillSolid`, `LineFillGradient`).
+* Fixed Android gradient fill rendering to correctly apply `fillAlpha`.
+* Android line area opacity now matches iOS behavior for gradient fills.
+
 ## 0.1.0
 
 * First minor release.
