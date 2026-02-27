@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Fixed iOS build: updated podspec dependency from `Charts` to `DGCharts` to resolve "Unable to find module dependency: 'DGCharts'" when installing on iOS.
+
 ## 0.1.1
 
 * Added line area fill support for line charts (`LineFillSolid`, `LineFillGradient`).
