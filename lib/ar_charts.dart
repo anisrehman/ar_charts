@@ -396,6 +396,32 @@ class AxisConfig {
   }
 }
 
+/// Fill type for the area under a line.
+sealed class LineFill {
+  const LineFill();
+}
+
+/// Solid fill under the line. [color] is the fill color; when null, native uses line color with alpha.
+class LineFillSolid extends LineFill {
+  const LineFillSolid({this.color});
+
+  final Color? color;
+}
+
+/// Gradient fill under the line (vertical: top to bottom).
+///
+/// [colorTop] is the color at the top (under the line); when null, native uses [LineStyle.lineColor].
+/// [colorBottom] is the color at the bottom (e.g. transparent); when null, native uses fully transparent.
+class LineFillGradient extends LineFill {
+  const LineFillGradient({this.colorTop, this.colorBottom});
+
+  /// Color at the top of the fill (under the line).
+  final Color? colorTop;
+
+  /// Color at the bottom of the fill (e.g. [Colors.transparent]).
+  final Color? colorBottom;
+}
+
 /// Style for a line series: color, width, circles, optional value labels, cubic curve.
 class LineStyle {
   const LineStyle({
@@ -406,6 +432,7 @@ class LineStyle {
     this.circleRadius = 4,
     this.drawValues = false,
     this.cubic = false,
+    this.fill,
   });
 
   final Color lineColor;
@@ -415,9 +442,10 @@ class LineStyle {
   final double circleRadius;
   final bool drawValues;
   final bool cubic;
+  final LineFill? fill;
 
   Map<String, Object?> toMap() {
-    return {
+    final map = <String, Object?>{
       'lineColor': lineColor.value,
       'lineWidth': lineWidth,
       'drawCircles': drawCircles,
@@ -426,6 +454,19 @@ class LineStyle {
       'drawValues': drawValues,
       'cubic': cubic,
     };
+    if (fill != null) {
+      switch (fill!) {
+        case LineFillSolid(:final color):
+          map['fill'] = 'solid';
+          final fillColor = color?.toARGB32();
+          if (fillColor != null) map['fillColor'] = fillColor;
+        case LineFillGradient(:final colorTop, :final colorBottom):
+          map['fill'] = 'gradient';
+          map['fillColorTop'] = colorTop?.toARGB32() ?? lineColor.toARGB32();
+          map['fillColorBottom'] = colorBottom?.toARGB32() ?? 0;
+      }
+    }
+    return map;
   }
 }
 

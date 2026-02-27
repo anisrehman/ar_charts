@@ -4,7 +4,7 @@ A Flutter charts library for **Android** and **iOS** with line and bar charts, c
 
 ## Features
 
-- **Line charts** — Single or multiple series, optional cubic curves, markers, viewport/zoom
+- **Line charts** — Single or multiple series, optional cubic curves, line area fill, markers, viewport/zoom
 - **Bar charts** — Single or grouped bars, custom colors and widths
 - **Axes** — Configurable X, left Y, and right Y axes; min/max, label count, grid lines
 - **Value formats** — Compact (1K, 1.5M), decimal, or percent for axis labels
@@ -12,6 +12,7 @@ A Flutter charts library for **Android** and **iOS** with line and bar charts, c
 - **Interactions** — Zoom, drag, and highlight (tap) on supported platforms
 - **Animation** — Optional entrance animation with configurable duration and easing
 - **Markers** — Optional value popover on tap with customizable format
+- **Line area fill** — Solid and gradient fill under line (`LineFillSolid`, `LineFillGradient`)
 
 ## Platform support
 
@@ -26,11 +27,41 @@ Other platforms (web, desktop) are not supported; the chart widgets render an em
 
 ## Installation
 
+### Android: add JitPack repository (required)
+
+The Android chart engine ([MPAndroidChart](https://github.com/PhilJay/MPAndroidChart)) is published on JitPack. **Before** adding the package, add the JitPack repository to your Android project.
+
+**If your Android project uses Kotlin DSL** (`build.gradle.kts` in the project root, e.g. `android/build.gradle.kts` or `android/settings.gradle.kts`), add:
+
+```kotlin
+repositories {
+    google()
+    mavenCentral()
+    maven("https://jitpack.io")
+}
+```
+
+**If your Android project uses Groovy** (`build.gradle`), add:
+
+```groovy
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+
+Put this in the same place where you already have `google()` and `mavenCentral()` (e.g. in `allprojects { repositories { ... } }` in the root `build.gradle`, or in `pluginManagement { repositories { ... } }` / root `repositories { ... }` in `settings.gradle` / `settings.gradle.kts`).
+
+### Add the package
+
 Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ar_charts: ^0.1.0
+  ar_charts: ^0.1.1
 ```
 
 Or from Git:
@@ -84,6 +115,10 @@ LineChart(
     lineWidth: 2,
     drawCircles: true,
     cubic: true,
+    fill: LineFillGradient(
+      colorTop: Colors.blueAccent,
+      colorBottom: Colors.transparent,
+    ),
   ),
 )
 ```
@@ -163,7 +198,7 @@ BarChart(
 |--------|--------|-------------|
 | `AxisConfig` | Both | Axis visibility, label, min/max, label count, grid/axis lines, `formatType`. |
 | `AxisValueFormat` | AxisConfig | `AxisValueFormatNone`, `AxisValueFormatCompact`, `AxisValueFormatDecimal(decimals)`, `AxisValueFormatPercent(decimals)`. |
-| `LineStyle` | LineChart | Line color/width, circles (on/off, color, radius), draw values, cubic curve. |
+| `LineStyle` | LineChart | Line color/width, circles (on/off, color, radius), draw values, cubic curve, optional `fill`. |
 | `BarStyle` | BarChart | Bar color, width, draw values. |
 | `BarGroupConfig` | BarChart | Grouped bars: enabled, groupSpace, barSpace, fromX, centerAxisLabels, label. |
 | `LegendConfig` | Both | enabled, position (top/bottom/left/right), alignment (start/center/end). |

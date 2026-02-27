@@ -1,6 +1,7 @@
 package com.anisrehman.archarts
 
 import android.content.Context
+import android.graphics.Color
 import android.view.View
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
@@ -102,6 +103,42 @@ class LineChartPlatformView(
         if (cubic == true) {
             dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
         }
+        val fill = styleMap["fill"] as? String
+        if (fill == "solid") {
+            dataSet.setDrawFilled(true)
+            val fillColorExplicit = (styleMap["fillColor"] as? Number)?.toInt()
+            val fillColor = if (fillColorExplicit != null) {
+                fillColorExplicit
+            } else {
+                val baseColor = lineColor ?: dataSet.color
+                val fillAlpha = 51 // 0.2
+                (fillAlpha shl 24) or (baseColor and 0x00FFFFFF)
+            }
+            dataSet.setFillColor(fillColor)
+        } else if (fill == "gradient") {
+            dataSet.setDrawFilled(true)
+            val lineColorArgb = (styleMap["lineColor"] as? Number)?.toInt() ?: 0xFF000000.toInt()
+            val topArgb = (styleMap["fillColorTop"] as? Number)?.toInt() ?: lineColorArgb
+            val bottomArgb = (styleMap["fillColorBottom"] as? Number)?.toInt() ?: 0
+            val topWithFillAlpha = applyFillAlpha(topArgb, dataSet.fillAlpha)
+            val bottomWithFillAlpha = applyFillAlpha(bottomArgb, dataSet.fillAlpha)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                val gradientDrawable = android.graphics.drawable.GradientDrawable(
+                    android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                    intArrayOf(topWithFillAlpha, bottomWithFillAlpha)
+                )
+                dataSet.fillDrawable = gradientDrawable
+            } else {
+                dataSet.setFillColor(topWithFillAlpha)
+            }
+        }
+    }
+
+    // iOS applies fillAlpha to gradient fills via CGContext alpha; mirror that on Android.
+    private fun applyFillAlpha(color: Int, fillAlpha: Int): Int {
+        val sourceAlpha = Color.alpha(color)
+        val mixedAlpha = (sourceAlpha * fillAlpha) / 255
+        return (mixedAlpha shl 24) or (color and 0x00FFFFFF)
     }
 
     private fun applyAxis(axis: XAxis, axisMap: Map<String, Any?>?, type: AxisType) {
