@@ -8,6 +8,6 @@ import io.flutter.plugin.platform.PlatformViewFactory
 class LineChartViewFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
         val creationParams = args as? Map<String, Any?>
-        return LineChartPlatformView(context, creationParams ?: emptyMap())
+        return LineChartPlatformView(context, viewId, creationParams ?: emptyMap())
     }
 }

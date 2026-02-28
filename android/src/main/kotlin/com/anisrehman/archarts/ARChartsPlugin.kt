@@ -30,6 +30,22 @@ class ARChartsPlugin : FlutterPlugin, MethodCallHandler {
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
             "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
+            "updateLineChart" -> {
+                val viewId = (call.arguments as? Map<*, *>)?.get("viewId") as? Number
+                val params = (call.arguments as? Map<*, *>)?.get("params") as? Map<String, Any?>
+                if (viewId != null && params != null) {
+                    ChartViewRegistry.getLineChart(viewId.toInt())?.updateConfig(params)
+                }
+                result.success(null)
+            }
+            "updateBarChart" -> {
+                val viewId = (call.arguments as? Map<*, *>)?.get("viewId") as? Number
+                val params = (call.arguments as? Map<*, *>)?.get("params") as? Map<String, Any?>
+                if (viewId != null && params != null) {
+                    ChartViewRegistry.getBarChart(viewId.toInt())?.updateConfig(params)
+                }
+                result.success(null)
+            }
             else -> result.notImplemented()
         }
     }

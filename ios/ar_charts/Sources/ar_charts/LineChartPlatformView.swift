@@ -9,7 +9,7 @@ final class LineChartViewFactory: NSObject, FlutterPlatformViewFactory {
         arguments args: Any?
     ) -> FlutterPlatformView {
         let params = args as? [String: Any] ?? [:]
-        return LineChartPlatformView(frame: frame, params: params)
+        return LineChartPlatformView(frame: frame, viewId: viewId, params: params)
     }
 
     func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
@@ -19,20 +19,29 @@ final class LineChartViewFactory: NSObject, FlutterPlatformViewFactory {
 
 final class LineChartPlatformView: NSObject, FlutterPlatformView {
     private let chartView: LineChartView
-    private let params: [String: Any]
+    private let viewId: Int64
 
-    init(frame: CGRect, params: [String: Any]) {
+    init(frame: CGRect, viewId: Int64, params: [String: Any]) {
         self.chartView = LineChartView(frame: frame)
-        self.params = params
+        self.viewId = viewId
         super.init()
-        applyConfig()
+        ChartViewRegistry.registerLineChart(viewId: viewId, view: self)
+        applyConfig(params: params)
+    }
+
+    deinit {
+        ChartViewRegistry.unregisterLineChart(viewId: viewId)
     }
 
     func view() -> UIView {
         return chartView
     }
 
-    private func applyConfig() {
+    func updateConfig(params: [String: Any]) {
+        applyConfig(params: params)
+    }
+
+    private func applyConfig(params: [String: Any]) {
         let series = params["series"] as? [[String: Any]] ?? []
         let defaultStyle = params["defaultLineStyle"] as? [String: Any]
         let perSeriesStyle = params["perSeriesStyle"] as? [String: Any]

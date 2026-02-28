@@ -37,13 +37,18 @@ class ArCharts {
 const String _lineChartViewType = 'ar_charts/line_chart';
 const String _barChartViewType = 'ar_charts/bar_chart';
 
+const MethodChannel _arChartsChannel = MethodChannel('ar_charts');
+
 /// A line chart widget that renders one or more [LineSeries] using the native
 /// chart engine (MPAndroidChart on Android, Charts on iOS).
 ///
 /// Use [series] for data. Optionally configure [xAxis], [leftAxis], [rightAxis],
 /// [legend], [interaction], [viewport], [marker], and [animation]. [height] and
 /// [padding] control layout. On unsupported platforms (e.g. web) renders nothing.
-class LineChart extends StatelessWidget {
+///
+/// The chart updates automatically when [series] or other config changes (e.g.
+/// after loading data from an API), without requiring a [Key].
+class LineChart extends StatefulWidget {
   const LineChart({
     super.key,
     required this.series,
@@ -80,36 +85,7 @@ class LineChart extends StatelessWidget {
   final EdgeInsets? padding;
 
   @override
-  Widget build(BuildContext context) {
-    final view = _buildPlatformView();
-    final padded = padding != null
-        ? Padding(padding: padding!, child: view)
-        : view;
-
-    if (height == null) {
-      return padded;
-    }
-    return SizedBox(height: height, child: padded);
-  }
-
-  Widget _buildPlatformView() {
-    final params = _toCreationParams();
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return AndroidView(
-        viewType: _lineChartViewType,
-        creationParams: params,
-        creationParamsCodec: const StandardMessageCodec(),
-      );
-    }
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return UiKitView(
-        viewType: _lineChartViewType,
-        creationParams: params,
-        creationParamsCodec: const StandardMessageCodec(),
-      );
-    }
-    return const SizedBox.shrink();
-  }
+  State<LineChart> createState() => _LineChartState();
 
   Map<String, Object?> _toCreationParams() {
     return {
@@ -128,6 +104,62 @@ class LineChart extends StatelessWidget {
       'animation': animation?.toMap(),
     };
   }
+
+}
+
+class _LineChartState extends State<LineChart> {
+  int? _viewId;
+
+  @override
+  void didUpdateWidget(LineChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_viewId != null &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)) {
+      _arChartsChannel.invokeMethod<void>(
+        'updateLineChart',
+        {'viewId': _viewId, 'params': widget._toCreationParams()},
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final view = _buildPlatformView();
+    final padded = widget.padding != null
+        ? Padding(padding: widget.padding!, child: view)
+        : view;
+
+    if (widget.height == null) {
+      return padded;
+    }
+    return SizedBox(height: widget.height, child: padded);
+  }
+
+  Widget _buildPlatformView() {
+    final params = widget._toCreationParams();
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidView(
+        viewType: _lineChartViewType,
+        creationParams: params,
+        creationParamsCodec: const StandardMessageCodec(),
+        onPlatformViewCreated: _onPlatformViewCreated,
+      );
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return UiKitView(
+        viewType: _lineChartViewType,
+        creationParams: params,
+        creationParamsCodec: const StandardMessageCodec(),
+        onPlatformViewCreated: _onPlatformViewCreated,
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  void _onPlatformViewCreated(int id) {
+    _viewId = id;
+  }
 }
 
 /// A bar chart widget that renders one or more [BarSeries] using the native
@@ -135,7 +167,10 @@ class LineChart extends StatelessWidget {
 ///
 /// Optionally configure [xAxis], [leftAxis], [rightAxis], [legend], [interaction],
 /// [marker], and [animation]. On unsupported platforms (e.g. web) renders nothing.
-class BarChart extends StatelessWidget {
+///
+/// The chart updates automatically when [series] or other config changes (e.g.
+/// after loading data from an API), without requiring a [Key].
+class BarChart extends StatefulWidget {
   const BarChart({
     super.key,
     required this.series,
@@ -175,38 +210,6 @@ class BarChart extends StatelessWidget {
   /// Padding around the native chart view.
   final EdgeInsets? padding;
 
-  @override
-  Widget build(BuildContext context) {
-    final view = _buildPlatformView();
-    final padded = padding != null
-        ? Padding(padding: padding!, child: view)
-        : view;
-
-    if (height == null) {
-      return padded;
-    }
-    return SizedBox(height: height, child: padded);
-  }
-
-  Widget _buildPlatformView() {
-    final params = _toCreationParams();
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return AndroidView(
-        viewType: _barChartViewType,
-        creationParams: params,
-        creationParamsCodec: const StandardMessageCodec(),
-      );
-    }
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return UiKitView(
-        viewType: _barChartViewType,
-        creationParams: params,
-        creationParamsCodec: const StandardMessageCodec(),
-      );
-    }
-    return const SizedBox.shrink();
-  }
-
   Map<String, Object?> _toCreationParams() {
     return {
       'series': series.map((item) => item.toMap()).toList(),
@@ -223,6 +226,64 @@ class BarChart extends StatelessWidget {
       'animation': animation?.toMap(),
       'barGroup': barGroup?.toMap(),
     };
+  }
+
+  @override
+  State<BarChart> createState() => _BarChartState();
+}
+
+class _BarChartState extends State<BarChart> {
+  int? _viewId;
+
+  @override
+  void didUpdateWidget(BarChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_viewId != null &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)) {
+      _arChartsChannel.invokeMethod<void>(
+        'updateBarChart',
+        {'viewId': _viewId, 'params': widget._toCreationParams()},
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final view = _buildPlatformView();
+    final padded = widget.padding != null
+        ? Padding(padding: widget.padding!, child: view)
+        : view;
+
+    if (widget.height == null) {
+      return padded;
+    }
+    return SizedBox(height: widget.height, child: padded);
+  }
+
+  Widget _buildPlatformView() {
+    final params = widget._toCreationParams();
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidView(
+        viewType: _barChartViewType,
+        creationParams: params,
+        creationParamsCodec: const StandardMessageCodec(),
+        onPlatformViewCreated: _onPlatformViewCreated,
+      );
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return UiKitView(
+        viewType: _barChartViewType,
+        creationParams: params,
+        creationParamsCodec: const StandardMessageCodec(),
+        onPlatformViewCreated: _onPlatformViewCreated,
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  void _onPlatformViewCreated(int id) {
+    _viewId = id;
   }
 }
 
