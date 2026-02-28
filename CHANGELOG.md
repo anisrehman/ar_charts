@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Charts update automatically when data changes.
+
 ## 0.1.1
 
 * Added line area fill support for line charts (`LineFillSolid`, `LineFillGradient`).
