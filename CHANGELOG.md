@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Charts update automatically when data changes.
+
 ## 0.1.2
 
 * Fixed iOS build: updated podspec dependency from `Charts` to `DGCharts` to resolve "Unable to find module dependency: 'DGCharts'" when installing on iOS.

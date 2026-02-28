@@ -15,20 +15,28 @@ import io.flutter.plugin.platform.PlatformView
 
 class LineChartPlatformView(
     context: Context,
+    private val viewId: Int,
     private val params: Map<String, Any?>
 ) : PlatformView {
 
     private val chart: LineChart = LineChart(context)
 
     init {
-        applyConfig()
+        ChartViewRegistry.registerLineChart(viewId, this)
+        applyConfig(params)
     }
 
     override fun getView(): View = chart
 
-    override fun dispose() = Unit
+    override fun dispose() {
+        ChartViewRegistry.unregisterLineChart(viewId)
+    }
 
-    private fun applyConfig() {
+    fun updateConfig(params: Map<String, Any?>) {
+        applyConfig(params)
+    }
+
+    private fun applyConfig(params: Map<String, Any?>) {
         val series = params["series"] as? List<*> ?: emptyList<Any>()
         val defaultStyle = params["defaultLineStyle"] as? Map<String, Any?>
         val perSeriesStyle = params["perSeriesStyle"] as? Map<String, Any?>

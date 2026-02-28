@@ -9,7 +9,7 @@ final class BarChartViewFactory: NSObject, FlutterPlatformViewFactory {
         arguments args: Any?
     ) -> FlutterPlatformView {
         let params = args as? [String: Any] ?? [:]
-        return BarChartPlatformView(frame: frame, params: params)
+        return BarChartPlatformView(frame: frame, viewId: viewId, params: params)
     }
 
     func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
@@ -19,20 +19,29 @@ final class BarChartViewFactory: NSObject, FlutterPlatformViewFactory {
 
 final class BarChartPlatformView: NSObject, FlutterPlatformView {
     private let chartView: BarChartView
-    private let params: [String: Any]
+    private let viewId: Int64
 
-    init(frame: CGRect, params: [String: Any]) {
+    init(frame: CGRect, viewId: Int64, params: [String: Any]) {
         self.chartView = BarChartView(frame: frame)
-        self.params = params
+        self.viewId = viewId
         super.init()
-        applyConfig()
+        ChartViewRegistry.registerBarChart(viewId: viewId, view: self)
+        applyConfig(params: params)
+    }
+
+    deinit {
+        ChartViewRegistry.unregisterBarChart(viewId: viewId)
     }
 
     func view() -> UIView {
         return chartView
     }
 
-    private func applyConfig() {
+    func updateConfig(params: [String: Any]) {
+        applyConfig(params: params)
+    }
+
+    private func applyConfig(params: [String: Any]) {
         let series = params["series"] as? [[String: Any]] ?? []
         let defaultStyle = params["defaultBarStyle"] as? [String: Any]
         let perSeriesStyle = params["perSeriesStyle"] as? [String: Any]
