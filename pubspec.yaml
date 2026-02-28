@@ -1,6 +1,6 @@
 name: ar_charts
 description: "Flutter charts library for Android and iOS. Line and bar charts with configurable axes, legends, and interactions. Wraps Charts (iOS) and MPAndroidChart (Android)."
-version: 0.1.2
+version: 0.1.3
 homepage: https://github.com/anisrehman/ar_charts
 repository: https://github.com/anisrehman/ar_charts
 
