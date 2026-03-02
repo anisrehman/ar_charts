@@ -33,7 +33,7 @@ internal class ChartMarkerView(
                     ?: refX.toString()
                 val yAxis = chart.axisLeft
                 val yFormatter = yAxis.valueFormatter
-                val bullet = '\u2022'
+                val bullet = '\u25CF'
                 val sb = SpannableStringBuilder()
                 sb.append(xFormatted)
                 for (ds in data.dataSets) {

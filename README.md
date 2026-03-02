@@ -4,14 +4,15 @@ A Flutter charts library for **Android** and **iOS** with line and bar charts, c
 
 ## Features
 
-- **Line charts** — Single or multiple series, optional cubic curves, line area fill, markers, viewport/zoom
+- **Line charts** — Single or multiple series, optional cubic curves, solid or dashed line style, line area fill, markers, viewport/zoom
 - **Bar charts** — Single or grouped bars, custom colors and widths
 - **Axes** — Configurable X, left Y, and right Y axes; min/max, label count, grid lines
 - **Value formats** — Compact (1K, 1.5M), decimal, or percent for axis labels
 - **Legend** — Position (top/bottom/left/right) and alignment
 - **Interactions** — Zoom, drag, and highlight (tap) on supported platforms
 - **Animation** — Optional entrance animation with configurable duration and easing
-- **Markers** — Optional value popover on tap with customizable format
+- **Markers** — Optional value popover on tap with customizable format; styled with rounded corners, border, and shadow
+- **Line draw style** — Solid or dashed lines via `LineDrawSolid` and `LineDrawDashed` (length, gap, phase) on `LineStyle`
 - **Line area fill** — Solid and gradient fill under line (`LineFillSolid`, `LineFillGradient`)
 
 ## Platform support
@@ -61,7 +62,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ar_charts: ^0.1.1
+  ar_charts: ^0.1.4
 ```
 
 Or from Git:
@@ -198,7 +199,7 @@ BarChart(
 |--------|--------|-------------|
 | `AxisConfig` | Both | Axis visibility, label, min/max, label count, grid/axis lines, `formatType`. |
 | `AxisValueFormat` | AxisConfig | `AxisValueFormatNone`, `AxisValueFormatCompact`, `AxisValueFormatDecimal(decimals)`, `AxisValueFormatPercent(decimals)`. |
-| `LineStyle` | LineChart | Line color/width, circles (on/off, color, radius), draw values, cubic curve, optional `fill`. |
+| `LineStyle` | LineChart | Line color/width, circles (on/off, color, radius), draw values, cubic curve, optional `fill`, `lineDrawStyle` (solid/dashed). |
 | `BarStyle` | BarChart | Bar color, width, draw values. |
 | `BarGroupConfig` | BarChart | Grouped bars: enabled, groupSpace, barSpace, fromX, centerAxisLabels, label. |
 | `LegendConfig` | Both | enabled, position (top/bottom/left/right), alignment (start/center/end). |
@@ -209,6 +210,7 @@ BarChart(
 
 ### LineChart-only
 
+- **Line draw style**: `LineStyle.lineDrawStyle` — `LineDrawSolid()` (default) or `LineDrawDashed(length:, gap:, phase:)` for dashed/dotted lines.
 - **Right axis**: `rightAxis` (default: disabled). Use for a second Y scale.
 - **Viewport**: `viewport` for visible X range and offsets (useful with zoom/drag).
 - **Per-series style**: `perSeriesStyle` map from series `id` to `LineStyle`.

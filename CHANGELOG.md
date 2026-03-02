@@ -1,3 +1,8 @@
+## 0.1.4
+
+* Line charts support solid and dashed line style via `LineDrawSolid` and `LineDrawDashed` on `LineStyle.lineDrawStyle`.
+* Chart marker styling improved on Android and iOS (rounded corners, border, shadow).
+
 ## 0.1.3
 
 * Charts update automatically when data changes.
