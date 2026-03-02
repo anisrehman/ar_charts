@@ -31,12 +31,12 @@ final class ChartMarkerView: MarkerView {
         layer.shadowRadius = 4
         layer.shadowOpacity = 0.25
 
-        containerView.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 4
         containerView.layer.masksToBounds = true
         addSubview(containerView)
 
-        textLabel.textColor = .white
+        textLabel.textColor = .black
         textLabel.font = .systemFont(ofSize: 12)
         textLabel.textAlignment = .natural
         textLabel.backgroundColor = .clear
@@ -56,7 +56,7 @@ final class ChartMarkerView: MarkerView {
             ?? Self.formatLikeAndroid(refX)
         let yAxis = chart.leftAxis
         let yFormatter = yAxis.valueFormatter
-        let bullet: Character = "\u{2022}"
+        let bullet: Character = "\u{25CF}"
         let attr = NSMutableAttributedString()
         let textColor = textLabel.textColor ?? .white
         attr.append(NSAttributedString(
