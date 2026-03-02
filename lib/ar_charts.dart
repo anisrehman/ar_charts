@@ -483,6 +483,34 @@ class LineFillGradient extends LineFill {
   final Color? colorBottom;
 }
 
+/// How the line is drawn: solid or dashed/dotted.
+sealed class LineDrawStyle {
+  const LineDrawStyle();
+}
+
+/// Solid line (default).
+class LineDrawSolid extends LineDrawStyle {
+  const LineDrawSolid();
+}
+
+/// Dashed or dotted line.
+class LineDrawDashed extends LineDrawStyle {
+  const LineDrawDashed({
+    required this.length,
+    required this.gap,
+    this.phase = 0,
+  });
+
+  /// Length of each dash segment in logical pixels.
+  final double length;
+
+  /// Length of the gap between dashes in logical pixels.
+  final double gap;
+
+  /// Offset into the pattern; typically 0.
+  final double phase;
+}
+
 /// Style for a line series: color, width, circles, optional value labels, cubic curve.
 class LineStyle {
   const LineStyle({
@@ -494,6 +522,7 @@ class LineStyle {
     this.drawValues = false,
     this.cubic = false,
     this.fill,
+    this.lineDrawStyle = const LineDrawSolid(),
   });
 
   final Color lineColor;
@@ -504,6 +533,7 @@ class LineStyle {
   final bool drawValues;
   final bool cubic;
   final LineFill? fill;
+  final LineDrawStyle lineDrawStyle;
 
   Map<String, Object?> toMap() {
     final map = <String, Object?>{
@@ -515,6 +545,15 @@ class LineStyle {
       'drawValues': drawValues,
       'cubic': cubic,
     };
+    switch (lineDrawStyle) {
+      case LineDrawSolid():
+        break;
+      case LineDrawDashed(:final length, :final gap, :final phase):
+        map['lineDash'] = {
+          'lengths': [length, gap],
+          'phase': phase,
+        };
+    }
     if (fill != null) {
       switch (fill!) {
         case LineFillSolid(:final color):

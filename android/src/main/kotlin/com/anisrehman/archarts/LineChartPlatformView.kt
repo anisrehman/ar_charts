@@ -111,6 +111,15 @@ class LineChartPlatformView(
         if (cubic == true) {
             dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
         }
+        val lineDashMap = styleMap["lineDash"] as? Map<String, Any?>
+        if (lineDashMap != null) {
+            val lengthsList = lineDashMap["lengths"] as? List<*>
+            val lengths = lengthsList?.mapNotNull { (it as? Number)?.toFloat() } ?: emptyList()
+            val phase = (lineDashMap["phase"] as? Number)?.toFloat() ?: 0f
+            if (lengths.size >= 2) {
+                dataSet.enableDashedLine(lengths[0], lengths[1], phase)
+            }
+        }
         val fill = styleMap["fill"] as? String
         if (fill == "solid") {
             dataSet.setDrawFilled(true)

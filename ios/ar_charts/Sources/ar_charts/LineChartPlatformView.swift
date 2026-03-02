@@ -105,6 +105,22 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
         if let cubic = styleMap["cubic"] as? Bool, cubic == true {
             dataSet.mode = .cubicBezier
         }
+        if let lineDashMap = styleMap["lineDash"] as? [String: Any],
+           let lengthsRaw = lineDashMap["lengths"] as? [Any],
+           lengthsRaw.count >= 2 {
+            let lengths = lengthsRaw.compactMap { item -> CGFloat? in
+                if let d = item as? Double { return CGFloat(d) }
+                if let i = item as? Int { return CGFloat(i) }
+                return nil
+            }
+            if lengths.count >= 2 {
+                var phase: CGFloat = 0
+                if let p = lineDashMap["phase"] as? Double { phase = CGFloat(p) }
+                else if let p = lineDashMap["phase"] as? Int { phase = CGFloat(p) }
+                dataSet.lineDashLengths = lengths
+                dataSet.lineDashPhase = phase
+            }
+        }
         let fill = styleMap["fill"] as? String
         if fill == "solid" {
             dataSet.drawFilledEnabled = true
