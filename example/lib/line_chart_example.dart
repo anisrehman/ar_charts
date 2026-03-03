@@ -63,9 +63,22 @@ class LineChartExamplePage extends StatelessWidget {
       ),
     };
 
-    // Gradient chart: single series with gradient fill (same data as first series).
+    // Gradient chart: single series with gradient fill, Jan 1–Jan 31.
+    // Use midday timestamps to avoid Android float precision rounding around midnight.
+    final janStart = DateTime(DateTime.now().year, 1, 1, 12);
+    final janEnd = DateTime(DateTime.now().year, 1, 31, 12);
+    double yGrad = 5000.0;
+    final gradientPoints = List.generate(31, (index) {
+      final date = janStart.add(Duration(days: index));
+      final delta = (random.nextDouble() - 0.5) * 3000.0;
+      yGrad = (yGrad + delta).clamp(1000.0, 100000.0);
+      return LinePoint(
+        x: date.millisecondsSinceEpoch.toDouble(),
+        y: yGrad,
+      );
+    });
     final gradientSeries = [
-      LineSeries(id: 'gradient', label: 'Price', points: series1),
+      LineSeries(id: 'gradient', label: 'Price', points: gradientPoints),
     ];
     final gradientStyles = {
       'gradient': const LineStyle(
@@ -141,9 +154,9 @@ class LineChartExamplePage extends StatelessWidget {
               series: gradientSeries,
               height: 280,
               xAxis: AxisConfig(
-                min: startDate.millisecondsSinceEpoch.toDouble(),
-                max: endDate.millisecondsSinceEpoch.toDouble(),
-                labelCount: 6,
+                min: janStart.millisecondsSinceEpoch.toDouble(),
+                max: janEnd.millisecondsSinceEpoch.toDouble(),
+                labelCount: 7,
                 formatType: const AxisValueFormatDate('MMM d'),
               ),
               leftAxis: const AxisConfig(
