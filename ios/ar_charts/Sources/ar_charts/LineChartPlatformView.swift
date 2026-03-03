@@ -17,9 +17,13 @@ final class LineChartViewFactory: NSObject, FlutterPlatformViewFactory {
     }
 }
 
-final class LineChartPlatformView: NSObject, FlutterPlatformView {
+final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSupporting {
     private let chartView: LineChartView
     private let viewId: Int64
+    var markerAutoHideSeconds: TimeInterval?
+    var autoHideWorkItem: DispatchWorkItem?
+
+    var chartViewForMarker: BarLineChartViewBase { chartView }
 
     init(frame: CGRect, viewId: Int64, params: [String: Any]) {
         self.chartView = LineChartView(frame: frame)
@@ -30,6 +34,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
     }
 
     deinit {
+        cancelMarkerAutoHide()
         ChartViewRegistry.unregisterLineChart(viewId: viewId)
     }
 
@@ -234,15 +239,6 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
         }
     }
 
-    private func applyMarker(markerMap: [String: Any]?) {
-        guard let markerMap else { return }
-        let enabled = markerMap["enabled"] as? Bool ?? false
-        if !enabled { return }
-        let marker = ChartMarkerView()
-        marker.chartView = chartView
-        chartView.marker = marker
-    }
-
     private func applyAnimation(animationMap: [String: Any]?) {
         guard let animationMap else { return }
         let enabled = animationMap["enabled"] as? Bool ?? false
@@ -255,5 +251,16 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView {
         default:
             chartView.animate(xAxisDuration: duration, easingOption: .easeInOutQuad)
         }
+    }
+}
+
+// MARK: - ChartMarkerSupporting (ChartViewDelegate) - It will be called by the framework when the user taps on a value.
+extension LineChartPlatformView {
+    func chartValueSelected(_ chartView: ChartViewBase, entry: ChartDataEntry, highlight: Highlight) {
+        handleChartValueSelected(chartView, entry: entry, highlight: highlight)
+    }
+
+    func chartValueNothingSelected(_ chartView: ChartViewBase) {
+        handleChartValueNothingSelected(chartView)
     }
 }

@@ -17,9 +17,13 @@ final class BarChartViewFactory: NSObject, FlutterPlatformViewFactory {
     }
 }
 
-final class BarChartPlatformView: NSObject, FlutterPlatformView {
+final class BarChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSupporting {
     private let chartView: BarChartView
     private let viewId: Int64
+    var markerAutoHideSeconds: TimeInterval?
+    var autoHideWorkItem: DispatchWorkItem?
+
+    var chartViewForMarker: BarLineChartViewBase { chartView }
 
     init(frame: CGRect, viewId: Int64, params: [String: Any]) {
         self.chartView = BarChartView(frame: frame)
@@ -30,6 +34,7 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView {
     }
 
     deinit {
+        cancelMarkerAutoHide()
         ChartViewRegistry.unregisterBarChart(viewId: viewId)
     }
 
@@ -202,15 +207,6 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView {
         chartView.highlightPerTapEnabled = highlightEnabled
     }
 
-    private func applyMarker(markerMap: [String: Any]?) {
-        guard let markerMap else { return }
-        let enabled = markerMap["enabled"] as? Bool ?? false
-        if !enabled { return }
-        let marker = ChartMarkerView()
-        marker.chartView = chartView
-        chartView.marker = marker
-    }
-
     private func applyAnimation(animationMap: [String: Any]?) {
         guard let animationMap else { return }
         let enabled = animationMap["enabled"] as? Bool ?? false
@@ -223,5 +219,16 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView {
         default:
             chartView.animate(xAxisDuration: duration, easingOption: .easeInOutQuad)
         }
+    }
+}
+
+// MARK: - ChartMarkerSupporting (ChartViewDelegate)
+extension BarChartPlatformView {
+    func chartValueSelected(_ chartView: ChartViewBase, entry: ChartDataEntry, highlight: Highlight) {
+        handleChartValueSelected(chartView, entry: entry, highlight: highlight)
+    }
+
+    func chartValueNothingSelected(_ chartView: ChartViewBase) {
+        handleChartValueNothingSelected(chartView)
     }
 }

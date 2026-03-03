@@ -705,12 +705,19 @@ class ViewportConfig {
 /// colored bullet (matching the line/bar) and formatted y. Only series with
 /// a value at the highlighted x are listed.
 class MarkerConfig {
-  const MarkerConfig({this.enabled = false});
+  const MarkerConfig({
+    this.enabled = false,
+    this.autoHideDurationSeconds = 3.5,
+  });
 
   final bool enabled;
+  final double? autoHideDurationSeconds;
 
   Map<String, Object?> toMap() {
-    return {'enabled': enabled};
+    return {
+      'enabled': enabled,
+      'autoHideDurationSeconds': autoHideDurationSeconds,
+    };
   }
 }
 

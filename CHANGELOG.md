@@ -1,3 +1,7 @@
+## 0.1.5
+
+* Markers now support optional auto-hide via `MarkerConfig.autoHideDurationSeconds` (seconds, default 3.5) on both line and bar charts; after a value is tapped, the marker automatically hides after the configured delay.
+
 ## 0.1.4
 
 * Line charts support solid and dashed line style via `LineDrawSolid` and `LineDrawDashed` on `LineStyle.lineDrawStyle`.
