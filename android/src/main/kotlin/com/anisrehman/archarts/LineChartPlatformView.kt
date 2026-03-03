@@ -24,6 +24,7 @@ class LineChartPlatformView(
     private val markerHelper = ChartMarkerHelper(context, Handler(Looper.getMainLooper()))
 
     init {
+        chart.setHighlighter(XAxisSnapLineChartHighlighter(chart))
         ChartViewRegistry.registerLineChart(viewId, this)
         applyConfig(params)
     }
