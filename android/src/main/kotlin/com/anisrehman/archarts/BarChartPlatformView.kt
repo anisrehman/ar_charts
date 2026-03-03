@@ -2,6 +2,8 @@ package com.anisrehman.archarts
 
 import android.content.Context
 import android.view.View
+import android.os.Handler
+import android.os.Looper
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
@@ -10,7 +12,6 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.github.mikephil.charting.highlight.Highlight
 import io.flutter.plugin.platform.PlatformView
 
 class BarChartPlatformView(
@@ -20,6 +21,7 @@ class BarChartPlatformView(
 ) : PlatformView {
 
     private val chart: BarChart = BarChart(context)
+    private val markerHelper = ChartMarkerHelper(context, Handler(Looper.getMainLooper()))
 
     init {
         ChartViewRegistry.registerBarChart(viewId, this)
@@ -29,6 +31,8 @@ class BarChartPlatformView(
     override fun getView(): View = chart
 
     override fun dispose() {
+        markerHelper.cancelAutoHide()
+        chart.setOnChartValueSelectedListener(null)
         ChartViewRegistry.unregisterBarChart(viewId)
     }
 
@@ -227,12 +231,7 @@ class BarChartPlatformView(
     }
 
     private fun applyMarker(markerMap: Map<String, Any?>?) {
-        if (markerMap == null) return
-        val enabled = markerMap["enabled"] as? Boolean ?: false
-        if (!enabled) return
-        val marker = ChartMarkerView(chart.context)
-        marker.chartView = chart
-        chart.marker = marker
+        markerHelper.applyMarker(chart, markerMap)
     }
 
     private fun applyAnimation(animationMap: Map<String, Any?>?) {

@@ -205,7 +205,7 @@ BarChart(
 | `LegendConfig` | Both | enabled, position (top/bottom/left/right), alignment (start/center/end). |
 | `InteractionConfig` | Both | zoomEnabled, dragEnabled, highlightEnabled. |
 | `ViewportConfig` | LineChart | visibleXRangeMin/Max, initialX, viewPortOffsets. |
-| `MarkerConfig` | Both | enabled; tooltip shows x on first line, then each series at that x with colored bullet and y. |
+| `MarkerConfig` | Both | enabled; tooltip shows x on first line, then each series at that x with colored bullet and y; optional `autoHideDurationSeconds` (seconds, default 3.5) to auto-hide the marker after selection. |
 | `AnimationConfig` | Both | enabled, durationMs, easing (easeInOut, linear). |
 
 ### LineChart-only

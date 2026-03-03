@@ -3,6 +3,8 @@ package com.anisrehman.archarts
 import android.content.Context
 import android.graphics.Color
 import android.view.View
+import android.os.Handler
+import android.os.Looper
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
@@ -10,7 +12,6 @@ import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.highlight.Highlight
 import io.flutter.plugin.platform.PlatformView
 
 class LineChartPlatformView(
@@ -20,6 +21,7 @@ class LineChartPlatformView(
 ) : PlatformView {
 
     private val chart: LineChart = LineChart(context)
+    private val markerHelper = ChartMarkerHelper(context, Handler(Looper.getMainLooper()))
 
     init {
         ChartViewRegistry.registerLineChart(viewId, this)
@@ -29,6 +31,8 @@ class LineChartPlatformView(
     override fun getView(): View = chart
 
     override fun dispose() {
+        markerHelper.cancelAutoHide()
+        chart.setOnChartValueSelectedListener(null)
         ChartViewRegistry.unregisterLineChart(viewId)
     }
 
@@ -263,12 +267,7 @@ class LineChartPlatformView(
     }
 
     private fun applyMarker(markerMap: Map<String, Any?>?) {
-        if (markerMap == null) return
-        val enabled = markerMap["enabled"] as? Boolean ?: false
-        if (!enabled) return
-        val marker = ChartMarkerView(chart.context)
-        marker.chartView = chart
-        chart.marker = marker
+        markerHelper.applyMarker(chart, markerMap)
     }
 
     private fun applyAnimation(animationMap: Map<String, Any?>?) {
