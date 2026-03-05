@@ -1,3 +1,9 @@
+## 0.1.6
+
+* Added axis grid-line styling options in `AxisConfig`: optional `gridLineColor` and `gridLineWidth`.
+* Applied axis grid-line color/width customization on both Android and iOS platform implementations.
+* Updated line chart example to demonstrate lighter, subtle grid lines.
+
 ## 0.1.5
 
 * Markers now support optional auto-hide via `MarkerConfig.autoHideDurationSeconds` (seconds, default 3.5) on both line and bar charts; after a value is tapped, the marker automatically hides after the configured delay.
