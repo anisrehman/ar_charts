@@ -1,6 +1,7 @@
 ## 0.1.5
 
 * Markers now support optional auto-hide via `MarkerConfig.autoHideDurationSeconds` (seconds, default 3.5) on both line and bar charts; after a value is tapped, the marker automatically hides after the configured delay.
+* Axes now support optional `gridLineColor` and `gridLineWidth` in `AxisConfig` to customize grid line appearance (for example, lighter/subtle grid lines).
 
 ## 0.1.4
 

@@ -167,6 +167,22 @@ class LineChartPlatformView(
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
         axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
+        val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
+        if (gridLineColor != null) {
+            axis.gridColor = gridLineColor
+        } else {
+            val labelColor = axis.textColor
+            axis.gridColor = Color.argb(
+                56,
+                Color.red(labelColor),
+                Color.green(labelColor),
+                Color.blue(labelColor)
+            )
+        }
+        val gridLineWidth = (axisMap["gridLineWidth"] as? Number)?.toFloat()
+        if (gridLineWidth != null) {
+            axis.gridLineWidth = gridLineWidth
+        }
         axis.setDrawAxisLine(axisMap["drawAxisLine"] as? Boolean ?: true)
 
         val min = (axisMap["min"] as? Number)?.toFloat()
@@ -191,6 +207,22 @@ class LineChartPlatformView(
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
         axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
+        val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
+        if (gridLineColor != null) {
+            axis.gridColor = gridLineColor
+        } else {
+            val labelColor = axis.textColor
+            axis.gridColor = Color.argb(
+                56,
+                Color.red(labelColor),
+                Color.green(labelColor),
+                Color.blue(labelColor)
+            )
+        }
+        val gridLineWidth = (axisMap["gridLineWidth"] as? Number)?.toFloat()
+        if (gridLineWidth != null) {
+            axis.gridLineWidth = gridLineWidth
+        }
         axis.setDrawAxisLine(axisMap["drawAxisLine"] as? Boolean ?: true)
 
         val min = (axisMap["min"] as? Number)?.toFloat()

@@ -104,8 +104,17 @@ LineChart(
     ),
   ],
   height: 280,
-  xAxis: const AxisConfig(min: 0, max: 4),
-  leftAxis: const AxisConfig(formatType: AxisValueFormatCompact()),
+  xAxis: AxisConfig(
+    min: 0,
+    max: 4,
+    gridLineColor: Colors.grey.withOpacity(0.25),
+    gridLineWidth: 0.8,
+  ),
+  leftAxis: AxisConfig(
+    formatType: const AxisValueFormatCompact(),
+    gridLineColor: Colors.grey.withOpacity(0.25),
+    gridLineWidth: 0.8,
+  ),
   legend: const LegendConfig(
     enabled: true,
     position: LegendPosition.bottom,
@@ -197,7 +206,7 @@ BarChart(
 
 | Config | Used by | Description |
 |--------|--------|-------------|
-| `AxisConfig` | Both | Axis visibility, label, min/max, label count, grid/axis lines, `formatType`. |
+| `AxisConfig` | Both | Axis visibility, label, min/max, label count, grid/axis lines, optional `gridLineColor`/`gridLineWidth`, `formatType`. |
 | `AxisValueFormat` | AxisConfig | `AxisValueFormatNone`, `AxisValueFormatCompact`, `AxisValueFormatDecimal(decimals)`, `AxisValueFormatPercent(decimals)`. |
 | `LineStyle` | LineChart | Line color/width, circles (on/off, color, radius), draw values, cubic curve, optional `fill`, `lineDrawStyle` (solid/dashed). |
 | `BarStyle` | BarChart | Bar color, width, draw values. |
