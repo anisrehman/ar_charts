@@ -9,6 +9,7 @@ class LineChartExamplePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const totalPoints = 60;
+    const subtleGridColor = Color(0x33808080);
     final random = Random();
     final startDate = DateTime.now().subtract(const Duration(days: totalPoints - 1));
     final endDate = DateTime.now();
@@ -109,10 +110,14 @@ class LineChartExamplePage extends StatelessWidget {
                 min: startDate.millisecondsSinceEpoch.toDouble(),
                 max: endDate.millisecondsSinceEpoch.toDouble(),
                 labelCount: 6,
+                gridLineColor: subtleGridColor,
+                gridLineWidth: 0.8,
                 formatType: const AxisValueFormatDate('MMM d'),
               ),
               leftAxis: const AxisConfig(
                 formatType: AxisValueFormatCompact(),
+                gridLineColor: subtleGridColor,
+                gridLineWidth: 0.8,
               ),
               legend: const LegendConfig(
                 enabled: true,
@@ -157,10 +162,14 @@ class LineChartExamplePage extends StatelessWidget {
                 min: janStart.millisecondsSinceEpoch.toDouble(),
                 max: janEnd.millisecondsSinceEpoch.toDouble(),
                 labelCount: 7,
+                gridLineColor: subtleGridColor,
+                gridLineWidth: 0.8,
                 formatType: const AxisValueFormatDate('MMM d'),
               ),
               leftAxis: const AxisConfig(
                 formatType: AxisValueFormatCompact(),
+                gridLineColor: subtleGridColor,
+                gridLineWidth: 0.8,
               ),
               legend: const LegendConfig(
                 enabled: true,
@@ -207,10 +216,14 @@ class LineChartExamplePage extends StatelessWidget {
                 min: startDate.millisecondsSinceEpoch.toDouble(),
                 max: endDate.millisecondsSinceEpoch.toDouble(),
                 labelCount: 6,
+                gridLineColor: subtleGridColor,
+                gridLineWidth: 0.8,
                 formatType: const AxisValueFormatDate('MMM d'),
               ),
               leftAxis: const AxisConfig(
                 formatType: AxisValueFormatCompact(),
+                gridLineColor: subtleGridColor,
+                gridLineWidth: 0.8,
               ),
               legend: const LegendConfig(
                 enabled: true,

@@ -405,6 +405,8 @@ class AxisConfig {
     this.max,
     this.labelCount,
     this.drawGridLines = true,
+    this.gridLineColor,
+    this.gridLineWidth,
     this.drawAxisLine = true,
     this.formatType,
   });
@@ -415,6 +417,10 @@ class AxisConfig {
   final double? max;
   final int? labelCount;
   final bool drawGridLines;
+  /// Optional color for axis grid lines. If null, platform uses a subtle default.
+  final Color? gridLineColor;
+  /// Optional width for axis grid lines. If null, platform default is used.
+  final double? gridLineWidth;
   final bool drawAxisLine;
   /// Optional formatter for axis value labels (e.g. X-axis dates, Y-axis compact/decimal/percent).
   final AxisValueFormat? formatType;
@@ -449,6 +455,8 @@ class AxisConfig {
       'max': max,
       'labelCount': labelCount,
       'drawGridLines': drawGridLines,
+      'gridLineColor': gridLineColor?.toARGB32(),
+      'gridLineWidth': gridLineWidth,
       'drawAxisLine': drawAxisLine,
       'formatType': formatTypeValue,
       'formatTypeDecimals': formatTypeDecimals,

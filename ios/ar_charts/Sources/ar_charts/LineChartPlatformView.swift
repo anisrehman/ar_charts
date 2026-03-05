@@ -160,6 +160,16 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
         guard let axisMap else { return }
         axis.enabled = axisMap["enabled"] as? Bool ?? true
         axis.drawGridLinesEnabled = axisMap["drawGridLines"] as? Bool ?? true
+        if let gridLineColor = axisMap["gridLineColor"] as? Int {
+            axis.gridColor = UIColor(argb: gridLineColor)
+        } else {
+            axis.gridColor = axis.labelTextColor.withAlphaComponent(0.22)
+        }
+        if let gridLineWidth = axisMap["gridLineWidth"] as? Double {
+            axis.gridLineWidth = gridLineWidth
+        } else if let gridLineWidth = axisMap["gridLineWidth"] as? Int {
+            axis.gridLineWidth = Double(gridLineWidth)
+        }
         axis.drawAxisLineEnabled = axisMap["drawAxisLine"] as? Bool ?? true
 
         if let min = axisMap["min"] as? Double { axis.axisMinimum = min }
