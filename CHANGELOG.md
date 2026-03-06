@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Structural changes in `BarChart` to better support grouped bar charts.
+
 ## 0.1.6
 
 * Added axis grid-line styling options in `AxisConfig`: optional `gridLineColor` and `gridLineWidth`.
