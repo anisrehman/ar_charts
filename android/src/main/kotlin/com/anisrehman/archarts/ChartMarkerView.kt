@@ -29,8 +29,7 @@ internal class ChartMarkerView(
             val data = chart?.data
             if (chart != null && data != null) {
                 val refX = highlight.x
-                val xFormatted = chart.xAxis.valueFormatter?.getAxisLabel(refX, chart.xAxis)
-                    ?: refX.toString()
+                val xFormatted = resolveMarkerTitle(e, refX, chart)
                 val yAxis = chart.axisLeft
                 val yFormatter = yAxis.valueFormatter
                 val bullet = '\u25CF'
@@ -61,6 +60,19 @@ internal class ChartMarkerView(
             }
         }
         super.refreshContent(e, highlight)
+    }
+
+    private fun resolveMarkerTitle(entry: Entry, refX: Float, chart: BarLineChartBase<*>): String {
+        val metadata = entry.data as? Map<*, *>
+        val label = metadata?.get("xLabel") as? String
+        if (!label.isNullOrBlank()) return label
+        val sourceX = (metadata?.get("sourceX") as? Number)?.toFloat()
+        if (sourceX != null) return formatXAxisValue(sourceX)
+        return chart.xAxis.valueFormatter?.getAxisLabel(refX, chart.xAxis) ?: formatXAxisValue(refX)
+    }
+
+    private fun formatXAxisValue(value: Float): String {
+        return if (value % 1f == 0f) value.toInt().toString() else value.toString()
     }
 
     /** Vertical gap (dp) between the data point and the marker so the point stays visible. */

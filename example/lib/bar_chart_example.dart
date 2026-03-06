@@ -6,26 +6,28 @@ class BarChartExamplePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final barSeries = [
-      const BarSeries(
-        id: 'sales',
-        label: 'Sales',
-        points: [
-          BarPoint(x: 1, y: 5, label: 'Mon'),
-          BarPoint(x: 2, y: 3, label: 'Tue'),
-          BarPoint(x: 3, y: 7, label: 'Wed'),
-          BarPoint(x: 4, y: 4, label: 'Thu'),
-          BarPoint(x: 5, y: 6, label: 'Fri'),
-        ],
-      ),
-    ];
+    final barData = BarChartData(
+      dataSets: const [
+        BarChartDataSet(
+          id: 'sales',
+          label: 'Sales',
+          entries: [
+            BarChartDataEntry(x: 1, y: 5, label: 'Mon'),
+            BarChartDataEntry(x: 2, y: 3, label: 'Tue'),
+            BarChartDataEntry(x: 3, y: 7, label: 'Wed'),
+            BarChartDataEntry(x: 4, y: 4, label: 'Thu'),
+            BarChartDataEntry(x: 5, y: 6, label: 'Fri'),
+          ],
+        ),
+      ],
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Bar Chart')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: BarChart(
-          series: barSeries,
+          data: barData,
           height: 280,
           xAxis: const AxisConfig(min: 0, max: 6),
           legend: const LegendConfig(

@@ -47,24 +47,43 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSupp
     }
 
     private func applyConfig(params: [String: Any]) {
-        let series = params["series"] as? [[String: Any]] ?? []
+        let dataSetsPayload = params["dataSets"] as? [[String: Any]] ?? []
         let defaultStyle = params["defaultBarStyle"] as? [String: Any]
         let perSeriesStyle = params["perSeriesStyle"] as? [String: Any]
-        let barGroup = params["barGroup"] as? [String: Any]
-        let groupEnabled = barGroup?["enabled"] as? Bool ?? false
+        let group = params["group"] as? [String: Any]
+        let groupEnabled = group?["enabled"] as? Bool ?? false
+        let groupedXAxisContext = groupEnabled ? buildGroupedXAxisContext(dataSetsPayload: dataSetsPayload) : nil
 
         var dataSets: [BarChartDataSet] = []
         var barWidth: Double?
         var labelMap: [Int: String] = [:]
-        for (index, item) in series.enumerated() {
+        for (index, item) in dataSetsPayload.enumerated() {
             let points = item["points"] as? [[String: Any]] ?? []
-            let entries: [BarChartDataEntry] = points.compactMap { point in
-                guard let x = point["x"] as? Double,
-                      let y = point["y"] as? Double else { return nil }
-                if !groupEnabled, index == 0, let label = point["label"] as? String {
-                    labelMap[Int(x)] = label
+            let entries: [BarChartDataEntry]
+            if groupEnabled, let ctx = groupedXAxisContext {
+                // groupBars positions by entry index: index i → group i. Emit entries in group order.
+                var pointByX: [Double: Double] = [:]
+                for point in points {
+                    guard let x = point["x"] as? Double, let y = point["y"] as? Double else { continue }
+                    pointByX[x] = y
                 }
-                return BarChartDataEntry(x: x, y: y)
+                entries = ctx.sourceValuesInOrder.enumerated().map { groupIndex, sourceX in
+                    let y = pointByX[sourceX] ?? 0
+                    let xLabel = ctx.groupLabels[safe: groupIndex] ?? formatXAxisValue(sourceX)
+                    return BarChartDataEntry(
+                        x: Double(groupIndex),
+                        y: y,
+                        data: ["sourceX": sourceX, "xLabel": xLabel] as NSDictionary
+                    )
+                }
+            } else {
+                entries = points.compactMap { point in
+                    guard let x = point["x"] as? Double, let y = point["y"] as? Double else { return nil }
+                    if index == 0, let label = point["label"] as? String {
+                        labelMap[Int(x)] = label
+                    }
+                    return BarChartDataEntry(x: x, y: y)
+                }
             }
             let label = item["label"] as? String ?? ""
             let dataSet = BarChartDataSet(entries: entries, label: label)
@@ -90,7 +109,7 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSupp
         applyAxis(axis: chartView.rightAxis, axisMap: params["rightAxis"] as? [String: Any], isXAxis: false)
 
         if groupEnabled {
-            applyGroupedBars(barGroup: barGroup, data: data)
+            applyGroupedBars(barGroup: group, data: data, groupedXAxisContext: groupedXAxisContext)
         } else {
             applyBarPointLabels(axis: chartView.xAxis, labelMap: labelMap)
         }
@@ -156,7 +175,11 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSupp
         axis.granularityEnabled = true
     }
 
-    private func applyGroupedBars(barGroup: [String: Any]?, data: BarChartData) {
+    private func applyGroupedBars(
+        barGroup: [String: Any]?,
+        data: BarChartData,
+        groupedXAxisContext: GroupedXAxisContext?
+    ) {
         guard let barGroup, data.dataSetCount > 1 else { return }
         let groupSpace = barGroup["groupSpace"] as? Double ?? 0.2
         let barSpace = barGroup["barSpace"] as? Double ?? 0.05
@@ -165,11 +188,35 @@ final class BarChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSupp
 
         data.groupBars(fromX: fromX, groupSpace: groupSpace, barSpace: barSpace)
         chartView.xAxis.centerAxisLabelsEnabled = centerAxisLabels
+        chartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: groupedXAxisContext?.groupLabels ?? [])
+        chartView.xAxis.granularity = 1
+        chartView.xAxis.granularityEnabled = true
 
-        let groupCount = data.dataSets.first?.entryCount ?? 0
+        let groupCount = groupedXAxisContext?.groupLabels.count ?? data.dataSets.first?.entryCount ?? 0
         let groupWidth = data.groupWidth(groupSpace: groupSpace, barSpace: barSpace)
         chartView.xAxis.axisMinimum = fromX
         chartView.xAxis.axisMaximum = fromX + groupWidth * Double(groupCount)
+    }
+
+    private func buildGroupedXAxisContext(dataSetsPayload: [[String: Any]]) -> GroupedXAxisContext {
+        var pointsByX: [Double: String] = [:]
+        for item in dataSetsPayload {
+            let points = item["points"] as? [[String: Any]] ?? []
+            for point in points {
+                guard let x = point["x"] as? Double else { continue }
+                if pointsByX[x] != nil { continue }
+                pointsByX[x] = (point["label"] as? String) ?? formatXAxisValue(x)
+            }
+        }
+        let sourceValuesInOrder = pointsByX.keys.sorted()
+        let xToGroupIndex = Dictionary(uniqueKeysWithValues: sourceValuesInOrder.enumerated().map { ($0.element, $0.offset) })
+        let groupLabels = sourceValuesInOrder.map { pointsByX[$0] ?? formatXAxisValue($0) }
+        return GroupedXAxisContext(xToGroupIndex: xToGroupIndex, groupLabels: groupLabels, sourceValuesInOrder: sourceValuesInOrder)
+    }
+
+    private func formatXAxisValue(_ value: Double) -> String {
+        if value == value.rounded() { return String(Int(value)) }
+        return String(value)
     }
 
     private func applyLegend(legendMap: [String: Any]?) {
@@ -240,5 +287,18 @@ extension BarChartPlatformView {
 
     func chartValueNothingSelected(_ chartView: ChartViewBase) {
         handleChartValueNothingSelected(chartView)
+    }
+}
+
+private struct GroupedXAxisContext {
+    let xToGroupIndex: [Double: Int]
+    let groupLabels: [String]
+    let sourceValuesInOrder: [Double]
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        guard index >= 0, index < count else { return nil }
+        return self[index]
     }
 }

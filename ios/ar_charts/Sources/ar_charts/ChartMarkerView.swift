@@ -52,8 +52,7 @@ final class ChartMarkerView: MarkerView {
             return
         }
         let refX = highlight.x
-        let xFormatted = chart.xAxis.valueFormatter?.stringForValue(refX, axis: chart.xAxis)
-            ?? Self.formatLikeAndroid(refX)
+        let xFormatted = Self.resolveMarkerTitle(entry: entry, chart: chart, fallbackX: refX)
         let yAxis = chart.leftAxis
         let yFormatter = yAxis.valueFormatter
         let bullet: Character = "\u{25CF}"
@@ -106,6 +105,23 @@ final class ChartMarkerView: MarkerView {
             return s + ".0"
         }
         return s
+    }
+
+    private static func resolveMarkerTitle(entry: ChartDataEntry, chart: BarLineChartViewBase, fallbackX: Double) -> String {
+        if let metadata = entry.data as? [String: Any] {
+            if let label = metadata["xLabel"] as? String, !label.isEmpty { return label }
+            if let sourceX = metadata["sourceX"] as? NSNumber { return formatXAxisValue(sourceX.doubleValue) }
+        } else if let metadata = entry.data as? NSDictionary {
+            if let label = metadata["xLabel"] as? String, !label.isEmpty { return label }
+            if let sourceX = metadata["sourceX"] as? NSNumber { return formatXAxisValue(sourceX.doubleValue) }
+        }
+        return chart.xAxis.valueFormatter?.stringForValue(fallbackX, axis: chart.xAxis)
+            ?? formatXAxisValue(fallbackX)
+    }
+
+    private static func formatXAxisValue(_ value: Double) -> String {
+        if value == value.rounded() { return String(Int(value)) }
+        return String(value)
     }
 
     /// Vertical gap between the data point and the marker so the point stays visible.

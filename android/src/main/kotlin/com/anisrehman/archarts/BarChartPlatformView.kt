@@ -42,28 +42,45 @@ class BarChartPlatformView(
     }
 
     private fun applyConfig(params: Map<String, Any?>) {
-        val series = params["series"] as? List<*> ?: emptyList<Any>()
+        val dataSetsPayload = params["dataSets"] as? List<*> ?: emptyList<Any>()
         val defaultStyle = params["defaultBarStyle"] as? Map<String, Any?>
         val perSeriesStyle = params["perSeriesStyle"] as? Map<String, Any?>
-        val barGroup = params["barGroup"] as? Map<String, Any?>
-        val groupEnabled = barGroup?.get("enabled") as? Boolean ?: false
+        val group = params["group"] as? Map<String, Any?>
+        val groupEnabled = group?.get("enabled") as? Boolean ?: false
+        val groupedXAxisContext = if (groupEnabled) buildGroupedXAxisContext(dataSetsPayload) else null
 
         var barWidth: Float? = null
         val labelMap = linkedMapOf<Int, String>()
-        val dataSets = series.mapIndexedNotNull { index, item ->
+        val dataSets = dataSetsPayload.mapIndexedNotNull { index, item ->
             val seriesMap = item as? Map<String, Any?> ?: return@mapIndexedNotNull null
             val points = seriesMap["points"] as? List<*> ?: emptyList<Any>()
-            val entries = points.mapNotNull { point ->
-                val pointMap = point as? Map<String, Any?> ?: return@mapNotNull null
-                val x = (pointMap["x"] as? Number)?.toFloat() ?: return@mapNotNull null
-                val y = (pointMap["y"] as? Number)?.toFloat() ?: return@mapNotNull null
-                if (!groupEnabled && index == 0) {
-                    val label = pointMap["label"] as? String
-                    if (label != null) {
-                        labelMap[x.toInt()] = label
-                    }
+            val entries = if (groupEnabled && groupedXAxisContext != null) {
+                // groupBars() positions by entry index: index i → group i. Emit entries in group order.
+                val pointByX = points.mapNotNull { p ->
+                    val pm = p as? Map<String, Any?> ?: return@mapNotNull null
+                    val x = (pm["x"] as? Number)?.toFloat() ?: return@mapNotNull null
+                    Pair(x, (pm["y"] as? Number)?.toFloat())
+                }.associateBy { it.first }
+                groupedXAxisContext.sourceValuesInOrder.mapIndexed { groupIndex, sourceX ->
+                    val y = pointByX[sourceX]?.second ?: 0f
+                    val xLabel = groupedXAxisContext.groupLabels.getOrNull(groupIndex)
+                    BarEntry(
+                        groupIndex.toFloat(),
+                        y,
+                        mapOf("sourceX" to sourceX, "xLabel" to xLabel)
+                    )
                 }
-                BarEntry(x, y)
+            } else {
+                points.mapNotNull { point ->
+                    val pointMap = point as? Map<String, Any?> ?: return@mapNotNull null
+                    val x = (pointMap["x"] as? Number)?.toFloat() ?: return@mapNotNull null
+                    val y = (pointMap["y"] as? Number)?.toFloat() ?: return@mapNotNull null
+                    if (index == 0) {
+                        val label = pointMap["label"] as? String
+                        if (label != null) labelMap[x.toInt()] = label
+                    }
+                    BarEntry(x, y)
+                }
             }
             val label = seriesMap["label"] as? String
             val dataSet = BarDataSet(entries, label ?: "")
@@ -89,7 +106,7 @@ class BarChartPlatformView(
         applyAxis(chart.axisRight, params["rightAxis"] as? Map<String, Any?>, AxisType.Y)
 
         if (groupEnabled) {
-            applyGroupedBars(chart.xAxis, barGroup, data, dataSets)
+            applyGroupedBars(chart.xAxis, group, data, dataSets, groupedXAxisContext)
         } else {
             applyBarPointLabels(chart.xAxis, labelMap)
         }
@@ -210,7 +227,8 @@ class BarChartPlatformView(
         axis: XAxis,
         barGroup: Map<String, Any?>?,
         data: BarData,
-        dataSets: List<BarDataSet>
+        dataSets: List<BarDataSet>,
+        groupedXAxisContext: GroupedXAxisContext?
     ) {
         if (barGroup == null || dataSets.size < 2) return
         val groupSpace = (barGroup["groupSpace"] as? Number)?.toFloat() ?: 0.2f
@@ -221,11 +239,40 @@ class BarChartPlatformView(
         data.groupBars(fromX, groupSpace, barSpace)
         axis.setCenterAxisLabels(centerAxisLabels)
         axis.granularity = 1f
+        axis.valueFormatter = IndexAxisValueFormatter(
+            groupedXAxisContext?.groupLabels ?: emptyList()
+        )
 
-        val groupCount = dataSets.firstOrNull()?.entryCount ?: 0
+        val groupCount = groupedXAxisContext?.groupLabels?.size ?: dataSets.firstOrNull()?.entryCount ?: 0
         val groupWidth = data.getGroupWidth(groupSpace, barSpace)
         axis.axisMinimum = fromX
         axis.axisMaximum = fromX + groupWidth * groupCount
+    }
+
+    private fun buildGroupedXAxisContext(dataSetsPayload: List<*>): GroupedXAxisContext {
+        val groupedPoints = linkedMapOf<Float, String>()
+        fun addPoint(point: Map<String, Any?>) {
+            val x = (point["x"] as? Number)?.toFloat() ?: return
+            if (groupedPoints.containsKey(x)) return
+            val label = point["label"] as? String
+            groupedPoints[x] = label ?: formatXAxisValue(x)
+        }
+        for (item in dataSetsPayload) {
+            val seriesMap = item as? Map<String, Any?> ?: continue
+            val points = seriesMap["points"] as? List<*> ?: continue
+            for (p in points) {
+                val point = p as? Map<String, Any?> ?: continue
+                addPoint(point)
+            }
+        }
+        val sourceValuesInOrder = groupedPoints.keys.toList().sorted()
+        val xToGroupIndex = sourceValuesInOrder.mapIndexed { index, value -> value to index }.toMap()
+        val groupLabels = sourceValuesInOrder.map { value -> groupedPoints[value] ?: formatXAxisValue(value) }
+        return GroupedXAxisContext(xToGroupIndex = xToGroupIndex, groupLabels = groupLabels, sourceValuesInOrder = sourceValuesInOrder)
+    }
+
+    private fun formatXAxisValue(value: Float): String {
+        return if (value % 1f == 0f) value.toInt().toString() else value.toString()
     }
 
     private fun applyLegend(legendMap: Map<String, Any?>?) {
@@ -280,3 +327,9 @@ class BarChartPlatformView(
 
     private enum class AxisType { X, Y }
 }
+
+private data class GroupedXAxisContext(
+    val xToGroupIndex: Map<Float, Int>,
+    val groupLabels: List<String>,
+    val sourceValuesInOrder: List<Float>
+)
