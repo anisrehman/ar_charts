@@ -18,7 +18,7 @@ final class YAxisValueFormatter: NSObject, AxisValueFormatter {
     func stringForValue(_ value: Double, axis: AxisBase?) -> String {
         switch formatType {
         case "compact":
-            return Self.formatCompact(value)
+            return Self.formatCompact(value, axis: axis)
         case "decimal":
             return String(format: "%.\(decimals)f", value)
         case "percent":
@@ -38,7 +38,22 @@ final class YAxisValueFormatter: NSObject, AxisValueFormatter {
         return formatter.string(from: date)
     }
 
-    private static func formatCompact(_ value: Double) -> String {
+    /// When the axis range is small (e.g. 100–101), compact format with "%.0f" would show
+    /// repeated "100" labels. Use decimal formatting for small ranges so labels stay distinct.
+    private static func formatCompact(_ value: Double, axis: AxisBase?) -> String {
+        let range: Double
+        if let axis = axis {
+            range = axis.axisMaximum - axis.axisMinimum
+        } else {
+            range = .greatestFiniteMagnitude
+        }
+        if range > 0 && range <= 20 {
+            let decimals: Int
+            if range <= 0.1 { decimals = 3 }
+            else if range <= 1 { decimals = 2 }
+            else { decimals = 1 }
+            return String(format: "%.\(decimals)f", value)
+        }
         let absValue = abs(value)
         let sign = value < 0 ? "-" : ""
         if absValue >= 1_000_000_000_000 {
