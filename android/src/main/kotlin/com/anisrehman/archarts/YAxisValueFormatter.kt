@@ -18,7 +18,7 @@ class YAxisValueFormatter(
 
     override fun getAxisLabel(value: Float, axis: AxisBase?): String {
         return when (formatType) {
-            "compact" -> formatCompact(value.toDouble())
+            "compact" -> formatCompact(value.toDouble(), axis)
             "decimal" -> String.format(Locale.US, "%.${decimals}f", value)
             "percent" -> String.format(Locale.US, "%.${decimals}f%%", value)
             "date" -> formatDate(value.toLong(), dateFormatPattern)
@@ -32,7 +32,22 @@ class YAxisValueFormatter(
         return formatter.format(date)
     }
 
-    private fun formatCompact(value: Double): String {
+    /**
+     * When the axis range is small (e.g. 100–101), compact format with "%.0f" would show
+     * repeated "100" labels. Use decimal formatting for small ranges so labels stay distinct.
+     */
+    private fun formatCompact(value: Double, axis: AxisBase?): String {
+        val range: Double = axis?.let {
+            it.axisMaximum.toDouble() - it.axisMinimum.toDouble()
+        } ?: Double.MAX_VALUE
+        if (range > 0 && range <= 20) {
+            val decimals = when {
+                range <= 0.1 -> 3
+                range <= 1.0 -> 2
+                else -> 1
+            }
+            return String.format(Locale.US, "%.${decimals}f", value)
+        }
         val absValue = kotlin.math.abs(value)
         val sign = if (value < 0) "-" else ""
         return when {

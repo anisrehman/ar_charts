@@ -66,18 +66,34 @@ class LineChartExamplePage extends StatelessWidget {
 
     // Gradient chart: single series with gradient fill, Jan 1–Jan 31.
     // Use midday timestamps to avoid Android float precision rounding around midnight.
-    final janStart = DateTime(DateTime.now().year, 1, 1, 12);
-    final janEnd = DateTime(DateTime.now().year, 1, 31, 12);
-    double yGrad = 5000.0;
-    final gradientPoints = List.generate(31, (index) {
-      final date = janStart.add(Duration(days: index));
-      final delta = (random.nextDouble() - 0.5) * 3000.0;
-      yGrad = (yGrad + delta).clamp(1000.0, 100000.0);
-      return LinePoint(
-        x: date.millisecondsSinceEpoch.toDouble(),
-        y: yGrad,
-      );
-    });
+    // final janStart = DateTime(DateTime.now().year, 1, 1, 12);
+    // final janEnd = DateTime(DateTime.now().year, 1, 31, 12);
+    // double yGrad = 5000.0;
+    // final gradientPoints = List.generate(31, (index) {
+    //   final date = janStart.add(Duration(days: index));
+    //   final delta = (random.nextDouble() - 0.5) * 3000.0;
+    //   yGrad = (yGrad + delta).clamp(1000.0, 100000.0);
+    //   return LinePoint(
+    //     x: date.millisecondsSinceEpoch.toDouble(),
+    //     y: yGrad,
+    //   );
+    // });
+    final gradientPoints = [
+      LinePoint(x: 1772841600000.0, y: 100),
+      LinePoint(x: 1772755200000.0, y: 100.63362965765083),
+      LinePoint(x: 1772668800000.0, y: 100.614715339512),
+      LinePoint(x: 1772582400000.0, y: 100.58634386230376),
+
+      LinePoint(x: 1772496000000.0, y: 100.56742954416494),
+      LinePoint(x: 1772409600000.0, y: 100.53905806695668),
+      LinePoint(x: 1772323200000.0, y: 100.52014374881786),
+      LinePoint(x: 1772236800000.0, y: 100.49177227160962),
+      LinePoint(x: 1772150400000.0, y: 100.47285795347078),
+
+      LinePoint(x: 1772064000000.0, y: 100.45394363533195),
+      LinePoint(x: 1771977600000.0, y: 100.42557215812371),
+    ];
+
     final gradientSeries = [
       LineSeries(id: 'gradient', label: 'Price', points: gradientPoints),
     ];
@@ -159,9 +175,9 @@ class LineChartExamplePage extends StatelessWidget {
               series: gradientSeries,
               height: 280,
               xAxis: AxisConfig(
-                min: janStart.millisecondsSinceEpoch.toDouble(),
-                max: janEnd.millisecondsSinceEpoch.toDouble(),
-                labelCount: 7,
+                // min: janStart.millisecondsSinceEpoch.toDouble(),
+                // max: janEnd.millisecondsSinceEpoch.toDouble(),
+                // labelCount: 7,
                 gridLineColor: subtleGridColor,
                 gridLineWidth: 0.8,
                 formatType: const AxisValueFormatDate('MMM d'),

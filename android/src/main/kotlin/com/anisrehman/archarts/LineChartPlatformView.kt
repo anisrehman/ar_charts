@@ -54,7 +54,7 @@ class LineChartPlatformView(
                 val x = (pointMap["x"] as? Number)?.toFloat() ?: return@mapNotNull null
                 val y = (pointMap["y"] as? Number)?.toFloat() ?: return@mapNotNull null
                 Entry(x, y)
-            }
+            }.sortedBy { it.x }
             val label = seriesMap["label"] as? String
             val dataSet = LineDataSet(entries, label ?: "")
             val seriesId = seriesMap["id"] as? String
