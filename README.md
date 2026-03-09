@@ -62,7 +62,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ar_charts: ^0.1.4
+  ar_charts: ^0.2.0
 ```
 
 Or from Git:
@@ -136,18 +136,22 @@ LineChart(
 ### Bar chart
 
 ```dart
+import 'package:ar_charts/ar_charts.dart';
+
 BarChart(
-  series: [
-    BarSeries(
-      id: 'sales',
-      label: 'Sales',
-      points: [
-        BarPoint(x: 1, y: 5, label: 'Mon'),
-        BarPoint(x: 2, y: 3, label: 'Tue'),
-        BarPoint(x: 3, y: 7, label: 'Wed'),
-      ],
-    ),
-  ],
+  data: BarChartData(
+    dataSets: [
+      BarChartDataSet(
+        id: 'sales',
+        label: 'Sales',
+        entries: [
+          BarChartDataEntry(x: 1, y: 5, label: 'Mon'),
+          BarChartDataEntry(x: 2, y: 3, label: 'Tue'),
+          BarChartDataEntry(x: 3, y: 7, label: 'Wed'),
+        ],
+      ),
+    ],
+  ),
   height: 280,
   xAxis: const AxisConfig(min: 0, max: 4),
   legend: const LegendConfig(enabled: true, position: LegendPosition.bottom),
@@ -161,18 +165,22 @@ BarChart(
 
 ### Grouped bar chart
 
-Use multiple `BarSeries` and enable `BarGroupConfig`:
+Use multiple `BarChartDataSet` in `BarChartData` and set `group` with `BarGroupConfig`:
 
 ```dart
+import 'package:ar_charts/ar_charts.dart';
+
 BarChart(
-  series: [
-    BarSeries(id: 'storeA', label: 'Store A', points: [...]),
-    BarSeries(id: 'storeB', label: 'Store B', points: [...]),
-  ],
-  barGroup: const BarGroupConfig(
-    enabled: true,
-    groupSpace: 0.2,
-    barSpace: 0.05,
+  data: BarChartData(
+    dataSets: [
+      BarChartDataSet(id: 'storeA', label: 'Store A', entries: [...]),
+      BarChartDataSet(id: 'storeB', label: 'Store B', entries: [...]),
+    ],
+    group: const BarGroupConfig(
+      enabled: true,
+      groupSpace: 0.2,
+      barSpace: 0.05,
+    ),
   ),
   defaultBarStyle: const BarStyle(barColor: Colors.blue, barWidth: 0.35),
   perSeriesStyle: const {
@@ -191,7 +199,7 @@ BarChart(
 | Widget | Description |
 |--------|-------------|
 | `LineChart` | Renders one or more line series with optional axes, legend, interaction, viewport, marker, and animation. |
-| `BarChart` | Renders one or more bar series; supports grouped bars via `BarGroupConfig`. |
+| `BarChart` | Renders bar data from `BarChartData`; supports grouped bars via `BarChartData.group`. |
 
 ### Data types
 
@@ -199,8 +207,9 @@ BarChart(
 |------|-------------|
 | `LineSeries` | `id`, `label`, and list of `LinePoint` (x, y). |
 | `LinePoint` | `x` (double), `y` (double). |
-| `BarSeries` | `id`, `label`, and list of `BarPoint` (x, y, optional label). |
-| `BarPoint` | `x`, `y`, and optional `label` for axis/tooltip. |
+| `BarChartData` | `dataSets` (list of `BarChartDataSet`) and optional `group` (`BarGroupConfig`). |
+| `BarChartDataSet` | `id`, `label`, and list of `BarChartDataEntry` (x, y, optional label). |
+| `BarChartDataEntry` | `x`, `y`, and optional `label` for axis/tooltip. |
 
 ### Configuration
 
@@ -226,8 +235,8 @@ BarChart(
 
 ### BarChart-only
 
-- **Bar groups**: `barGroup` with `BarGroupConfig` for multiple series side-by-side.
-- **Per-series style**: `perSeriesStyle` map from series `id` to `BarStyle`.
+- **Data model**: Pass `BarChartData` with `dataSets` and optional `group` (`BarGroupConfig`) for grouped bars.
+- **Per-series style**: `perSeriesStyle` map from dataset `id` to `BarStyle`.
 
 ---
 
@@ -237,7 +246,7 @@ The **example** app in this repo includes:
 
 1. **Line chart** — Many points, compact Y-axis format, drag, marker, cubic line.
 2. **Bar chart** — Single series with labels and values on bars.
-3. **Grouped bar chart** — Two series with `BarGroupConfig` and per-series colors.
+3. **Grouped bar chart** — Multiple datasets with `BarChartData.group` and per-series colors.
 
 Run the example:
 

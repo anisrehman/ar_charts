@@ -162,8 +162,9 @@ class _LineChartState extends State<LineChart> {
   }
 }
 
-/// A bar chart widget that renders one or more [BarSeries] using the native
-/// chart engine. Use [barGroup] with [BarGroupConfig] for grouped bars.
+/// A bar chart widget that renders one or more [BarChartDataSet] using the
+/// native chart engine. Use [BarChartData.group] with [BarGroupConfig] for
+/// grouped bars.
 ///
 /// Optionally configure [xAxis], [leftAxis], [rightAxis], [legend], [interaction],
 /// [marker], and [animation]. On unsupported platforms (e.g. web) renders nothing.
@@ -173,7 +174,7 @@ class _LineChartState extends State<LineChart> {
 class BarChart extends StatefulWidget {
   const BarChart({
     super.key,
-    required this.series,
+    required this.data,
     this.xAxis,
     this.leftAxis,
     this.rightAxis,
@@ -187,12 +188,12 @@ class BarChart extends StatefulWidget {
     ),
     this.marker,
     this.animation,
-    this.barGroup,
     this.height,
     this.padding,
   });
 
-  final List<BarSeries> series;
+  /// Data for the bar chart: one or more datasets and optional grouping.
+  final BarChartData data;
   final AxisConfig? xAxis;
   final AxisConfig? leftAxis;
   final AxisConfig? rightAxis;
@@ -202,7 +203,6 @@ class BarChart extends StatefulWidget {
   final InteractionConfig? interaction;
   final MarkerConfig? marker;
   final AnimationConfig? animation;
-  final BarGroupConfig? barGroup;
 
   /// Fixed height of the chart; if null, only [padding] affects size.
   final double? height;
@@ -212,7 +212,8 @@ class BarChart extends StatefulWidget {
 
   Map<String, Object?> _toCreationParams() {
     return {
-      'series': series.map((item) => item.toMap()).toList(),
+      'dataSets': data.dataSets.map((item) => item.toMap()).toList(),
+      'group': data.group?.toMap(),
       'xAxis': xAxis?.toMap(),
       'leftAxis': leftAxis?.toMap(),
       'rightAxis': rightAxis?.toMap(),
@@ -224,7 +225,6 @@ class BarChart extends StatefulWidget {
       'interaction': interaction?.toMap(),
       'marker': marker?.toMap(),
       'animation': animation?.toMap(),
-      'barGroup': barGroup?.toMap(),
     };
   }
 
@@ -309,9 +309,24 @@ class LineSeries {
   }
 }
 
-/// A single bar series: unique [id], optional [label] for legend, and [points].
-class BarSeries {
-  const BarSeries({required this.id, required this.points, this.label});
+/// A bar chart data model: one or more datasets and optional grouping config.
+class BarChartData {
+  const BarChartData({
+    required this.dataSets,
+    this.group,
+  });
+
+  final List<BarChartDataSet> dataSets;
+  final BarGroupConfig? group;
+}
+
+/// One bar dataset: unique [id], optional [label] for legend, and [entries].
+class BarChartDataSet {
+  const BarChartDataSet({
+    required this.id,
+    required this.entries,
+    this.label,
+  });
 
   /// Unique identifier; used for [BarChart.perSeriesStyle] and [BarGroupConfig].
   final String id;
@@ -319,14 +334,15 @@ class BarSeries {
   /// Optional label shown in the legend.
   final String? label;
 
-  /// Data points (x, y, optional label) for this series.
-  final List<BarPoint> points;
+  /// Data points (x, y, optional label) for this dataset.
+  final List<BarChartDataEntry> entries;
 
   Map<String, Object?> toMap() {
     return {
       'id': id,
       'label': label,
-      'points': points.map((point) => point.toMap()).toList(),
+      // Native side still expects key "points".
+      'points': entries.map((entry) => entry.toMap()).toList(),
     };
   }
 }
@@ -344,8 +360,8 @@ class LinePoint {
 }
 
 /// One (x, y) bar with optional [label] for axis or tooltip.
-class BarPoint {
-  const BarPoint({required this.x, required this.y, this.label});
+class BarChartDataEntry {
+  const BarChartDataEntry({required this.x, required this.y, this.label});
 
   final double x;
   final double y;
