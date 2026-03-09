@@ -58,7 +58,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
                 guard let x = point["x"] as? Double,
                       let y = point["y"] as? Double else { return nil }
                 return ChartDataEntry(x: x, y: y)
-            }
+            }.sorted { $0.x < $1.x }
             let label = item["label"] as? String ?? ""
             let dataSet = LineChartDataSet(entries: entries, label: label)
 
