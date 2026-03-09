@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Fixed line chart y-axis repeating the same label (e.g. "100") when using compact format with a narrow value range (e.g. 100–101).
+
 ## 0.2.0
 
 * Structural changes in `BarChart` to better support grouped bar charts.
