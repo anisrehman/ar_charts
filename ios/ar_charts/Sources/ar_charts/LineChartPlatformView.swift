@@ -191,6 +191,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
         guard let legendMap else { return }
         let legend = chartView.legend
         legend.enabled = legendMap["enabled"] as? Bool ?? true
+        legend.textColor = defaultAxisLabelColor
 
         switch legendMap["position"] as? String {
         case "bottom":

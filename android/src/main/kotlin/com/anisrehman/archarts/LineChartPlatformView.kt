@@ -248,6 +248,7 @@ class LineChartPlatformView(
         val legend = chart.legend
         if (legendMap == null) return
         legend.isEnabled = legendMap["enabled"] as? Boolean ?: true
+        legend.textColor = defaultAxisTextColor
 
         when (legendMap["position"] as? String) {
             "bottom" -> legend.verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
