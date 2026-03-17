@@ -75,35 +75,54 @@ internal class ChartMarkerView(
         return if (value % 1f == 0f) value.toInt().toString() else value.toString()
     }
 
-    /** Vertical gap (dp) between the data point and the marker so the point stays visible. */
-    private val verticalGapPx: Float
+    /** Gap (dp) between the data point and the marker so the point stays visible. */
+    private val gapPx: Float
         get() = 8f * resources.displayMetrics.density
 
     override fun getOffset(): MPPointF {
-        return MPPointF(-(width / 2f), -(height + verticalGapPx))
+        return MPPointF(-(width / 2f), gapPx)
     }
 
     override fun getOffsetForDrawingAtPoint(posX: Float, posY: Float): MPPointF {
-        // Center marker on point: center X, place above point
-        var offsetX = -(width / 2f)
-        var offsetY = -(height + verticalGapPx)
-        val chart = chartView ?: return MPPointF(offsetX, offsetY)
+        val chart = chartView ?: return MPPointF(-(width / 2f), gapPx)
         val vph = chart.viewPortHandler
         val contentLeft = vph.contentLeft()
         val contentRight = vph.contentRight()
         val contentTop = vph.contentTop()
         val contentBottom = vph.contentBottom()
-        // Clamp horizontal: if marker would extend past content bounds, shift center X so it stays inside
-        if (posX + offsetX < contentLeft) {
-            offsetX = contentLeft - posX
-        } else if (posX + offsetX + width > contentRight) {
-            offsetX = contentRight - posX - width
+        val gap = gapPx
+        var offsetX: Float
+        var offsetY: Float
+        when {
+            posY + gap + height <= contentBottom -> {
+                offsetX = -(width / 2f)
+                offsetY = gap
+            }
+            posY - height - gap >= contentTop -> {
+                offsetX = -(width / 2f)
+                offsetY = -(height + gap)
+            }
+            posX + gap + width <= contentRight -> {
+                offsetX = gap
+                offsetY = -(height / 2f)
+            }
+            posX - width - gap >= contentLeft -> {
+                offsetX = -(width + gap)
+                offsetY = -(height / 2f)
+            }
+            else -> {
+                offsetX = -(width / 2f)
+                offsetY = -(height / 2f)
+            }
         }
-        if (posY + offsetY < contentTop) {
-            offsetY = contentTop - posY
-        } else if (posY + offsetY + height > contentBottom) {
-            offsetY = contentBottom - posY - height
-        }
+        val left = posX + offsetX
+        val top = posY + offsetY
+        val right = left + width
+        val bottom = top + height
+        if (left < contentLeft) offsetX = contentLeft - posX
+        else if (right > contentRight) offsetX = contentRight - posX - width
+        if (top < contentTop) offsetY = contentTop - posY
+        else if (bottom > contentBottom) offsetY = contentBottom - posY - height
         return MPPointF(offsetX, offsetY)
     }
 }

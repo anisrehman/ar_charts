@@ -124,32 +124,54 @@ final class ChartMarkerView: MarkerView {
         return String(value)
     }
 
-    /// Vertical gap between the data point and the marker so the point stays visible.
-    private static let verticalGap: CGFloat = 8
+    /// Gap between the data point and the marker so the point stays visible.
+    private static let gap: CGFloat = 8
 
     override func offsetForDrawing(atPoint point: CGPoint) -> CGPoint {
         let width = bounds.width
         let height = bounds.height
-        let gap = Self.verticalGap
-        var offsetX = -width / 2
-        var offsetY = -height - gap
+        let gap = Self.gap
+        var offsetX: CGFloat
+        var offsetY: CGFloat
 
         guard let chart = chartView else {
-            return CGPoint(x: offsetX, y: offsetY)
+            return CGPoint(x: -width / 2, y: gap)
         }
-        let chartWidth = chart.bounds.width
-        let chartHeight = chart.bounds.height
+        let contentLeft: CGFloat = 0
+        let contentTop: CGFloat = 0
+        let contentRight = chart.bounds.width
+        let contentBottom = chart.bounds.height
 
-        if point.x + offsetX < 0 {
-            offsetX = -point.x
-        } else if point.x + width + offsetX > chartWidth {
-            offsetX = chartWidth - point.x - width
+        if point.y + gap + height <= contentBottom {
+            offsetX = -width / 2
+            offsetY = gap
+        } else if point.y - height - gap >= contentTop {
+            offsetX = -width / 2
+            offsetY = -height - gap
+        } else if point.x + gap + width <= contentRight {
+            offsetX = gap
+            offsetY = -height / 2
+        } else if point.x - width - gap >= contentLeft {
+            offsetX = -width - gap
+            offsetY = -height / 2
+        } else {
+            offsetX = -width / 2
+            offsetY = -height / 2
         }
 
-        if point.y + offsetY < 0 {
-            offsetY = -point.y
-        } else if point.y + height + offsetY > chartHeight {
-            offsetY = chartHeight - point.y - height
+        let left = point.x + offsetX
+        let top = point.y + offsetY
+        let right = left + width
+        let bottom = top + height
+        if left < contentLeft {
+            offsetX = contentLeft - point.x
+        } else if right > contentRight {
+            offsetX = contentRight - point.x - width
+        }
+        if top < contentTop {
+            offsetY = contentTop - point.y
+        } else if bottom > contentBottom {
+            offsetY = contentBottom - point.y - height
         }
 
         return CGPoint(x: offsetX, y: offsetY)
