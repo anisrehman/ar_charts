@@ -1,3 +1,8 @@
+## 0.2.2
+
+* Fixed axis font color issue.
+* Fixed tooltip position.
+
 ## 0.2.1
 
 * Fixed line chart y-axis repeating the same label (e.g. "100") when using compact format with a narrow value range (e.g. 100–101).
