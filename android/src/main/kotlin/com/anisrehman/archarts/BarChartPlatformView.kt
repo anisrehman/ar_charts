@@ -15,6 +15,8 @@ import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import io.flutter.plugin.platform.PlatformView
 
+private val defaultAxisTextColor: Int = Color.parseColor("#333333")
+
 class BarChartPlatformView(
     context: Context,
     private val viewId: Int,
@@ -137,6 +139,7 @@ class BarChartPlatformView(
     private fun applyAxis(axis: XAxis, axisMap: Map<String, Any?>?, type: AxisType) {
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
+        axis.textColor = defaultAxisTextColor
         axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
         val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
         if (gridLineColor != null) {
@@ -176,6 +179,7 @@ class BarChartPlatformView(
     private fun applyAxis(axis: YAxis, axisMap: Map<String, Any?>?, type: AxisType) {
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
+        axis.textColor = defaultAxisTextColor
         axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
         val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
         if (gridLineColor != null) {

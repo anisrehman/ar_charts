@@ -14,6 +14,8 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import io.flutter.plugin.platform.PlatformView
 
+private val defaultAxisTextColor: Int = Color.parseColor("#333333")
+
 class LineChartPlatformView(
     context: Context,
     private val viewId: Int,
@@ -166,6 +168,7 @@ class LineChartPlatformView(
     private fun applyAxis(axis: XAxis, axisMap: Map<String, Any?>?, type: AxisType) {
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
+        axis.textColor = defaultAxisTextColor
         axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
         val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
         if (gridLineColor != null) {
@@ -206,6 +209,7 @@ class LineChartPlatformView(
     private fun applyAxis(axis: YAxis, axisMap: Map<String, Any?>?, type: AxisType) {
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
+        axis.textColor = defaultAxisTextColor
         axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
         val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
         if (gridLineColor != null) {

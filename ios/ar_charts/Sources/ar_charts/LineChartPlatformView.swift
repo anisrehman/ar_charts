@@ -2,6 +2,8 @@ import Flutter
 import UIKit
 import DGCharts
 
+private let defaultAxisLabelColor = UIColor(argb: 0xFF333333)
+
 final class LineChartViewFactory: NSObject, FlutterPlatformViewFactory {
     func create(
         withFrame frame: CGRect,
@@ -159,6 +161,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
     private func applyAxis(axis: AxisBase, axisMap: [String: Any]?, isXAxis: Bool) {
         guard let axisMap else { return }
         axis.enabled = axisMap["enabled"] as? Bool ?? true
+        axis.labelTextColor = defaultAxisLabelColor
         axis.drawGridLinesEnabled = axisMap["drawGridLines"] as? Bool ?? true
         if let gridLineColor = axisMap["gridLineColor"] as? Int {
             axis.gridColor = UIColor(argb: gridLineColor)
