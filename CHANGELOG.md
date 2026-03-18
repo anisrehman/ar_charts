@@ -1,3 +1,9 @@
+## 0.2.3
+
+* Added selected-point emphasis for line charts via `LineStyle.selectedPoint`, so tapped points can stay hidden by default and still become clearly visible on selection.
+* Applied the selected-point highlight behavior on both Android and iOS line chart renderers.
+* Updated the line chart example to demonstrate selected-point emphasis with hidden normal circles.
+
 ## 0.2.2
 
 * Fixed axis font color issue.

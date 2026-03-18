@@ -27,6 +27,7 @@ class LineChartPlatformView(
 
     init {
         chart.setHighlighter(XAxisSnapLineChartHighlighter(chart))
+        chart.renderer = SelectedPointLineChartRenderer(chart, chart.animator, chart.viewPortHandler)
         ChartViewRegistry.registerLineChart(viewId, this)
         applyConfig(params)
     }
@@ -58,7 +59,7 @@ class LineChartPlatformView(
                 Entry(x, y)
             }.sortedBy { it.x }
             val label = seriesMap["label"] as? String
-            val dataSet = LineDataSet(entries, label ?: "")
+            val dataSet = SelectedPointLineDataSet(entries, label ?: "")
             val seriesId = seriesMap["id"] as? String
             val styleMap = seriesId?.let { id -> perSeriesStyle?.get(id) as? Map<String, Any?> }
                 ?: defaultStyle
@@ -83,7 +84,7 @@ class LineChartPlatformView(
     }
 
     // Keep in sync with iOS LineChartPlatformView.applyLineStyle (same order and rules).
-    private fun applyLineStyle(dataSet: LineDataSet, styleMap: Map<String, Any?>?) {
+    private fun applyLineStyle(dataSet: SelectedPointLineDataSet, styleMap: Map<String, Any?>?) {
         if (styleMap == null) return
 
         val lineColor = (styleMap["lineColor"] as? Number)?.toInt()
@@ -109,6 +110,22 @@ class LineChartPlatformView(
             dataSet.circleRadius = circleRadius
             // radius <= 0 means no visible circles, so disable drawing.
             if (circleRadius <= 0f) dataSet.setDrawCircles(false)
+        }
+        val selectedPointMap = styleMap["selectedPoint"] as? Map<String, Any?>
+        if (selectedPointMap != null) {
+            dataSet.selectedPointEnabled = selectedPointMap["enabled"] as? Boolean ?: true
+            dataSet.selectedPointColor = (selectedPointMap["color"] as? Number)?.toInt()
+            dataSet.selectedPointRadius =
+                (selectedPointMap["radius"] as? Number)?.toFloat() ?: dataSet.selectedPointRadius
+            dataSet.selectedPointStrokeColor =
+                (selectedPointMap["strokeColor"] as? Number)?.toInt()
+            dataSet.selectedPointStrokeWidth =
+                (selectedPointMap["strokeWidth"] as? Number)?.toFloat() ?: dataSet.selectedPointStrokeWidth
+        } else {
+            dataSet.selectedPointEnabled = false
+            dataSet.selectedPointColor = null
+            dataSet.selectedPointStrokeColor = null
+            dataSet.selectedPointStrokeWidth = 0f
         }
         val drawValues = styleMap["drawValues"] as? Boolean
         if (drawValues != null) {

@@ -11,7 +11,9 @@ class LineChartExamplePage extends StatelessWidget {
     const totalPoints = 60;
     const subtleGridColor = Color(0x33808080);
     final random = Random();
-    final startDate = DateTime.now().subtract(const Duration(days: totalPoints - 1));
+    final startDate = DateTime.now().subtract(
+      const Duration(days: totalPoints - 1),
+    );
     final endDate = DateTime.now();
 
     // Line 1: Y values above 1000 so compact formatter shows 1K, 10K, 50K, etc.
@@ -20,10 +22,7 @@ class LineChartExamplePage extends StatelessWidget {
       final date = startDate.add(Duration(days: index));
       final delta = (random.nextDouble() - 0.5) * 3000.0;
       y1 = (y1 + delta).clamp(1000.0, 100000.0);
-      return LinePoint(
-        x: date.millisecondsSinceEpoch.toDouble(),
-        y: y1,
-      );
+      return LinePoint(x: date.millisecondsSinceEpoch.toDouble(), y: y1);
     });
     // Line 2: Different random walk, offset range
     double y2 = 30000.0;
@@ -31,10 +30,7 @@ class LineChartExamplePage extends StatelessWidget {
       final date = startDate.add(Duration(days: index));
       final delta = (random.nextDouble() - 0.5) * 2000.0;
       y2 = (y2 + delta).clamp(5000.0, 80000.0);
-      return LinePoint(
-        x: date.millisecondsSinceEpoch.toDouble(),
-        y: y2,
-      );
+      return LinePoint(x: date.millisecondsSinceEpoch.toDouble(), y: y2);
     });
     final lineSeries = [
       LineSeries(id: 'price', label: 'Price', points: series1),
@@ -47,6 +43,7 @@ class LineChartExamplePage extends StatelessWidget {
         lineWidth: 2,
         drawCircles: true,
         circleRadius: 0,
+        selectedPoint: LineSelectedPointStyle(radius: 6),
         drawValues: false,
         cubic: true,
         fill: LineFillSolid(color: Colors.blue),
@@ -57,6 +54,7 @@ class LineChartExamplePage extends StatelessWidget {
         lineWidth: 2,
         drawCircles: true,
         circleRadius: 0,
+        selectedPoint: LineSelectedPointStyle(radius: 6),
         drawValues: false,
         cubic: true,
         fill: LineFillSolid(color: Color(0xFFFF9800)), // orange with alpha
@@ -103,6 +101,7 @@ class LineChartExamplePage extends StatelessWidget {
         lineWidth: 2,
         drawCircles: true,
         circleRadius: 0,
+        selectedPoint: LineSelectedPointStyle(radius: 6),
         drawValues: false,
         cubic: true,
         fill: LineFillGradient(
@@ -145,16 +144,14 @@ class LineChartExamplePage extends StatelessWidget {
                 dragEnabled: true,
                 highlightEnabled: true,
               ),
-              animation: const AnimationConfig(
-                enabled: true,
-                durationMs: 700,
-              ),
+              animation: const AnimationConfig(enabled: true, durationMs: 700),
               marker: const MarkerConfig(enabled: true),
               defaultLineStyle: const LineStyle(
                 lineColor: Colors.blue,
                 lineWidth: 2,
                 drawCircles: true,
                 circleRadius: 0,
+                selectedPoint: LineSelectedPointStyle(radius: 6),
                 drawValues: false,
                 cubic: true,
                 fill: LineFillSolid(),
@@ -165,10 +162,7 @@ class LineChartExamplePage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Text(
                 'Gradient fill',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
             LineChart(
@@ -197,16 +191,14 @@ class LineChartExamplePage extends StatelessWidget {
                 dragEnabled: true,
                 highlightEnabled: true,
               ),
-              animation: const AnimationConfig(
-                enabled: true,
-                durationMs: 700,
-              ),
+              animation: const AnimationConfig(enabled: true, durationMs: 700),
               marker: const MarkerConfig(enabled: true),
               defaultLineStyle: const LineStyle(
                 lineColor: Colors.blue,
                 lineWidth: 2,
                 drawCircles: true,
                 circleRadius: 0,
+                selectedPoint: LineSelectedPointStyle(radius: 6),
                 drawValues: false,
                 cubic: true,
               ),
@@ -216,10 +208,7 @@ class LineChartExamplePage extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Text(
                 'Dashed and dotted lines',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
             LineChart(
@@ -265,6 +254,7 @@ class LineChartExamplePage extends StatelessWidget {
                   lineWidth: 2,
                   drawCircles: true,
                   circleRadius: 0,
+                  selectedPoint: LineSelectedPointStyle(radius: 6),
                   lineDrawStyle: LineDrawDashed(length: 2, gap: 4),
                 ),
               },

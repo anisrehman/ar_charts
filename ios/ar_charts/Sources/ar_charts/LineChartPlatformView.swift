@@ -31,6 +31,11 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
         self.chartView = LineChartView(frame: frame)
         self.viewId = viewId
         super.init()
+        chartView.renderer = SelectedPointLineChartRenderer(
+            dataProvider: chartView,
+            animator: chartView.chartAnimator,
+            viewPortHandler: chartView.viewPortHandler
+        )
         ChartViewRegistry.registerLineChart(viewId: viewId, view: self)
         applyConfig(params: params)
     }
@@ -62,7 +67,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
                 return ChartDataEntry(x: x, y: y)
             }.sorted { $0.x < $1.x }
             let label = item["label"] as? String ?? ""
-            let dataSet = LineChartDataSet(entries: entries, label: label)
+            let dataSet = SelectedPointLineChartDataSet(entries: entries, label: label)
 
             let seriesId = item["id"] as? String
             let styleMap = seriesId.flatMap { perSeriesStyle?[$0] as? [String: Any] } ?? defaultStyle
@@ -86,7 +91,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
         chartView.notifyDataSetChanged()
     }
 
-    private func applyLineStyle(dataSet: LineChartDataSet, styleMap: [String: Any]?) {
+    private func applyLineStyle(dataSet: SelectedPointLineChartDataSet, styleMap: [String: Any]?) {
         guard let styleMap else { return }
 
         if let lineColor = styleMap["lineColor"] as? Int {
@@ -105,6 +110,26 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
         }
         if let circleRadius = styleMap["circleRadius"] as? Double {
             dataSet.circleRadius = circleRadius
+        }
+        if let selectedPointMap = styleMap["selectedPoint"] as? [String: Any] {
+            dataSet.selectedPointEnabled = selectedPointMap["enabled"] as? Bool ?? true
+            dataSet.selectedPointColor = (selectedPointMap["color"] as? Int).map(UIColor.init(argb:))
+            if let radius = selectedPointMap["radius"] as? Double {
+                dataSet.selectedPointRadius = CGFloat(radius)
+            } else if let radius = selectedPointMap["radius"] as? Int {
+                dataSet.selectedPointRadius = CGFloat(radius)
+            }
+            dataSet.selectedPointStrokeColor = (selectedPointMap["strokeColor"] as? Int).map(UIColor.init(argb:))
+            if let width = selectedPointMap["strokeWidth"] as? Double {
+                dataSet.selectedPointStrokeWidth = CGFloat(width)
+            } else if let width = selectedPointMap["strokeWidth"] as? Int {
+                dataSet.selectedPointStrokeWidth = CGFloat(width)
+            }
+        } else {
+            dataSet.selectedPointEnabled = false
+            dataSet.selectedPointColor = nil
+            dataSet.selectedPointStrokeColor = nil
+            dataSet.selectedPointStrokeWidth = 0
         }
         if let drawValues = styleMap["drawValues"] as? Bool {
             dataSet.drawValuesEnabled = drawValues

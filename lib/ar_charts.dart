@@ -104,7 +104,6 @@ class LineChart extends StatefulWidget {
       'animation': animation?.toMap(),
     };
   }
-
 }
 
 class _LineChartState extends State<LineChart> {
@@ -116,10 +115,10 @@ class _LineChartState extends State<LineChart> {
     if (_viewId != null &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS)) {
-      _arChartsChannel.invokeMethod<void>(
-        'updateLineChart',
-        {'viewId': _viewId, 'params': widget._toCreationParams()},
-      );
+      _arChartsChannel.invokeMethod<void>('updateLineChart', {
+        'viewId': _viewId,
+        'params': widget._toCreationParams(),
+      });
     }
   }
 
@@ -241,10 +240,10 @@ class _BarChartState extends State<BarChart> {
     if (_viewId != null &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS)) {
-      _arChartsChannel.invokeMethod<void>(
-        'updateBarChart',
-        {'viewId': _viewId, 'params': widget._toCreationParams()},
-      );
+      _arChartsChannel.invokeMethod<void>('updateBarChart', {
+        'viewId': _viewId,
+        'params': widget._toCreationParams(),
+      });
     }
   }
 
@@ -311,10 +310,7 @@ class LineSeries {
 
 /// A bar chart data model: one or more datasets and optional grouping config.
 class BarChartData {
-  const BarChartData({
-    required this.dataSets,
-    this.group,
-  });
+  const BarChartData({required this.dataSets, this.group});
 
   final List<BarChartDataSet> dataSets;
   final BarGroupConfig? group;
@@ -322,11 +318,7 @@ class BarChartData {
 
 /// One bar dataset: unique [id], optional [label] for legend, and [entries].
 class BarChartDataSet {
-  const BarChartDataSet({
-    required this.id,
-    required this.entries,
-    this.label,
-  });
+  const BarChartDataSet({required this.id, required this.entries, this.label});
 
   /// Unique identifier; used for [BarChart.perSeriesStyle] and [BarGroupConfig].
   final String id;
@@ -433,37 +425,38 @@ class AxisConfig {
   final double? max;
   final int? labelCount;
   final bool drawGridLines;
+
   /// Optional color for axis grid lines. If null, platform uses a subtle default.
   final Color? gridLineColor;
+
   /// Optional width for axis grid lines. If null, platform default is used.
   final double? gridLineWidth;
   final bool drawAxisLine;
+
   /// Optional formatter for axis value labels (e.g. X-axis dates, Y-axis compact/decimal/percent).
   final AxisValueFormat? formatType;
 
   Map<String, Object?> toMap() {
-    final String? formatTypeValue = formatType == null ||
-            formatType is AxisValueFormatNone
+    final String? formatTypeValue =
+        formatType == null || formatType is AxisValueFormatNone
         ? null
         : formatType is AxisValueFormatCompact
-            ? 'compact'
-            : formatType is AxisValueFormatDecimal
-                ? 'decimal'
-                : formatType is AxisValueFormatPercent
-                    ? 'percent'
-                    : formatType is AxisValueFormatDate
-                        ? 'date'
-                        : null;
-    final int? formatTypeDecimals =
-        formatType is AxisValueFormatDecimal
-            ? (formatType as AxisValueFormatDecimal).decimals
-            : formatType is AxisValueFormatPercent
-                ? (formatType as AxisValueFormatPercent).decimals
-                : null;
-    final String? formatPattern =
-        formatType is AxisValueFormatDate
-            ? (formatType as AxisValueFormatDate).formatPattern
-            : null;
+        ? 'compact'
+        : formatType is AxisValueFormatDecimal
+        ? 'decimal'
+        : formatType is AxisValueFormatPercent
+        ? 'percent'
+        : formatType is AxisValueFormatDate
+        ? 'date'
+        : null;
+    final int? formatTypeDecimals = formatType is AxisValueFormatDecimal
+        ? (formatType as AxisValueFormatDecimal).decimals
+        : formatType is AxisValueFormatPercent
+        ? (formatType as AxisValueFormatPercent).decimals
+        : null;
+    final String? formatPattern = formatType is AxisValueFormatDate
+        ? (formatType as AxisValueFormatDate).formatPattern
+        : null;
     return {
       'enabled': enabled,
       'label': label,
@@ -535,7 +528,39 @@ class LineDrawDashed extends LineDrawStyle {
   final double phase;
 }
 
-/// Style for a line series: color, width, circles, optional value labels, cubic curve.
+/// Visual emphasis for the currently selected point on a line series.
+///
+/// This is applied only while a point is highlighted. Unselected points still
+/// use the base `drawCircles` / `circleRadius` / `circleColor` styling from
+/// [LineStyle].
+class LineSelectedPointStyle {
+  const LineSelectedPointStyle({
+    this.enabled = true,
+    this.color,
+    this.radius = 5,
+    this.strokeColor = Colors.white,
+    this.strokeWidth = 2,
+  });
+
+  final bool enabled;
+  final Color? color;
+  final double radius;
+  final Color? strokeColor;
+  final double strokeWidth;
+
+  Map<String, Object?> toMap() {
+    return {
+      'enabled': enabled,
+      'color': color?.toARGB32(),
+      'radius': radius,
+      'strokeColor': strokeColor?.toARGB32(),
+      'strokeWidth': strokeWidth,
+    };
+  }
+}
+
+/// Style for a line series: color, width, circles, selected-point emphasis,
+/// optional value labels, cubic curve.
 class LineStyle {
   const LineStyle({
     required this.lineColor,
@@ -543,6 +568,7 @@ class LineStyle {
     this.drawCircles = true,
     this.circleColor,
     this.circleRadius = 4,
+    this.selectedPoint,
     this.drawValues = false,
     this.cubic = false,
     this.fill,
@@ -554,6 +580,7 @@ class LineStyle {
   final bool drawCircles;
   final Color? circleColor;
   final double circleRadius;
+  final LineSelectedPointStyle? selectedPoint;
   final bool drawValues;
   final bool cubic;
   final LineFill? fill;
@@ -561,11 +588,12 @@ class LineStyle {
 
   Map<String, Object?> toMap() {
     final map = <String, Object?>{
-      'lineColor': lineColor.value,
+      'lineColor': lineColor.toARGB32(),
       'lineWidth': lineWidth,
       'drawCircles': drawCircles,
-      'circleColor': circleColor?.value,
+      'circleColor': circleColor?.toARGB32(),
       'circleRadius': circleRadius,
+      'selectedPoint': selectedPoint?.toMap(),
       'drawValues': drawValues,
       'cubic': cubic,
     };
@@ -608,7 +636,7 @@ class BarStyle {
 
   Map<String, Object?> toMap() {
     return {
-      'barColor': barColor.value,
+      'barColor': barColor.toARGB32(),
       'barWidth': barWidth,
       'drawValues': drawValues,
     };
