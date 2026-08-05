@@ -1,3 +1,7 @@
+## 0.2.4
+
+* Bumped package version and refreshed dependency lockfiles for Flutter/Dart SDK compatibility.
+
 ## 0.2.3
 
 * Added selected-point emphasis for line charts via `LineStyle.selectedPoint`, so tapped points can stay hidden by default and still become clearly visible on selection.
