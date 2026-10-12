@@ -161,12 +161,24 @@ class LineChartExamplePage extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Text(
-                'Gradient fill',
+                'Gradient fill with x-axis marks',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
             LineChart(
               series: gradientSeries,
+              xAxisMarks: const [
+                XAxisMark(
+                  x: 1772496000000.0,
+                  label: r'$1.2K',
+                  color: Colors.green,
+                ),
+                XAxisMark(
+                  x: 1772064000000.0,
+                  label: r'$800',
+                  color: Colors.orange,
+                ),
+              ],
               height: 280,
               xAxis: AxisConfig(
                 // min: janStart.millisecondsSinceEpoch.toDouble(),

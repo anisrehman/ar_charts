@@ -78,6 +78,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
         chartView.data = LineChartData(dataSets: dataSets)
 
         applyAxis(axis: chartView.xAxis, axisMap: params["xAxis"] as? [String: Any], isXAxis: true)
+        applyXAxisMarks(marks: params["xAxisMarks"] as? [[String: Any]])
         applyAxis(axis: chartView.leftAxis, axisMap: params["leftAxis"] as? [String: Any], isXAxis: false)
         applyAxis(axis: chartView.rightAxis, axisMap: params["rightAxis"] as? [String: Any], isXAxis: false)
 
@@ -209,6 +210,37 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
         }
         if let formatter = YAxisValueFormatter(axisMap: axisMap) {
             axis.valueFormatter = formatter
+        }
+    }
+
+    /// Labels at x positions only. Limit lines are not data entries, so they do not
+    /// change the y-axis range. Keep in sync with Android applyXAxisMarks.
+    private func applyXAxisMarks(marks: [[String: Any]]?) {
+        let xAxis = chartView.xAxis
+        xAxis.removeAllLimitLines()
+        xAxis.drawLimitLinesBehindDataEnabled = false
+        guard let marks else { return }
+        for markMap in marks {
+            let x: Double
+            if let value = markMap["x"] as? Double {
+                x = value
+            } else if let value = markMap["x"] as? Int {
+                x = Double(value)
+            } else {
+                continue
+            }
+            guard let label = markMap["label"] as? String, !label.isEmpty else { continue }
+            let limitLine = ChartLimitLine(limit: x, label: label)
+            limitLine.lineWidth = 0
+            limitLine.lineColor = .clear
+            if let color = markMap["color"] as? Int {
+                limitLine.valueTextColor = UIColor(argb: color)
+            } else {
+                limitLine.valueTextColor = defaultAxisLabelColor
+            }
+            limitLine.valueFont = .systemFont(ofSize: 10)
+            limitLine.labelPosition = .rightBottom
+            xAxis.addLimitLine(limitLine)
         }
     }
 
