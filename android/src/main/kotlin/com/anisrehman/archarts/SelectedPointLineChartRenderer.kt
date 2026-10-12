@@ -14,9 +14,9 @@ import com.github.mikephil.charting.utils.Utils
 import com.github.mikephil.charting.utils.ViewPortHandler
 
 internal class SelectedPointLineDataSet(
-    entries: List<Entry>,
+    entries: List<Entry<Nothing>>,
     label: String
-) : LineDataSet(entries, label) {
+) : LineDataSet<Nothing>(entries, label) {
     var selectedPointEnabled: Boolean = false
     var selectedPointColor: Int? = null
     var selectedPointRadius: Float = 5f
@@ -38,10 +38,10 @@ internal class SelectedPointLineChartRenderer(
         style = Paint.Style.STROKE
     }
 
-    override fun drawHighlighted(c: Canvas, indices: Array<Highlight>) {
+    override fun drawHighlighted(c: Canvas, indices: List<Highlight>) {
         super.drawHighlighted(c, indices)
 
-        val lineData = mChart.lineData ?: return
+        val lineData = chart.lineData ?: return
 
         for (highlight in indices) {
             val dataSet = lineData.getDataSetByIndex(highlight.dataSetIndex) as? SelectedPointLineDataSet
@@ -51,14 +51,14 @@ internal class SelectedPointLineChartRenderer(
             val entry = dataSet.getEntryForXValue(highlight.x, highlight.y) ?: continue
             if (!isInBoundsX(entry, dataSet)) continue
 
-            val pixel = mChart.getTransformer(dataSet.axisDependency)
-                .getPixelForValues(entry.x, entry.y * mAnimator.phaseY)
+            val pixel = chart.getTransformer(dataSet.axisDependency)
+                .getPixelForValues(entry.x, entry.y * animator.phaseY)
             val x = pixel.x.toFloat()
             val y = pixel.y.toFloat()
 
-            if (!mViewPortHandler.isInBoundsLeft(x)
-                || !mViewPortHandler.isInBoundsRight(x)
-                || !mViewPortHandler.isInBoundsY(y)
+            if (!viewPortHandler.isInBoundsLeft(x)
+                || !viewPortHandler.isInBoundsRight(x)
+                || !viewPortHandler.isInBoundsY(y)
             ) {
                 MPPointD.recycleInstance(pixel)
                 continue

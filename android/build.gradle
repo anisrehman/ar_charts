@@ -4,10 +4,10 @@ plugins {
 
 android {
     namespace "com.anisrehman.archarts"
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
-        minSdk 21
+        minSdk 23
     }
 
     sourceSets {
@@ -27,6 +27,6 @@ kotlin {
 }
 
 dependencies {
-    implementation "com.github.PhilJay:MPAndroidChart:3.1.0"
+    implementation "com.github.PhilJay.MPAndroidChart:MPChartLib:v4.0.1"
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }

@@ -1,6 +1,5 @@
 package com.anisrehman.archarts
 
-import android.graphics.Color
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -9,7 +8,6 @@ import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.data.DataSet
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
-import com.github.mikephil.charting.interfaces.datasets.IBarLineScatterCandleBubbleDataSet
 import com.github.mikephil.charting.utils.MPPointF
 import kotlin.math.abs
 
@@ -23,52 +21,50 @@ internal class ChartMarkerView(
 
     private val textView = findViewById<android.widget.TextView>(R.id.markerText)
 
-    override fun refreshContent(e: Entry?, highlight: Highlight?) {
-        if (e != null && highlight != null) {
-            val chart = chartView as? BarLineChartBase<*>
-            val data = chart?.data
-            if (chart != null && data != null) {
-                val refX = highlight.x
-                val xFormatted = resolveMarkerTitle(e, refX, chart)
-                val yAxis = chart.axisLeft
-                val yFormatter = yAxis.valueFormatter
-                val bullet = '\u25CF'
-                val sb = SpannableStringBuilder()
-                sb.append(xFormatted)
-                for (ds in data.dataSets) {
-                    val entry = ds.getEntryForXValue(refX, Float.NaN, DataSet.Rounding.CLOSEST)
-                        ?: continue
-                    if (abs(entry.x - refX) > 0.001f) continue
-                    val yFormatted = yFormatter?.getAxisLabel(entry.y, yAxis) ?: entry.y.toString()
-                    val label = ds.label ?: ""
-                    val color = (ds as? IBarLineScatterCandleBubbleDataSet<*>)?.getColor(0) ?: Color.GRAY
-                    val lineStart = sb.length
-                    sb.append('\n')
-                    sb.append(bullet)
-                    sb.setSpan(
-                        ForegroundColorSpan(color),
-                        lineStart + 1,
-                        lineStart + 2,
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
-                    sb.append(" ")
-                    sb.append(label)
-                    sb.append(": ")
-                    sb.append(yFormatted)
-                }
-                textView.text = sb
+    override fun refreshContent(e: Entry<*>, highlight: Highlight) {
+        val chart = chartView as? BarLineChartBase<*>
+        val data = chart?.data
+        if (chart != null && data != null) {
+            val refX = highlight.x
+            val xFormatted = resolveMarkerTitle(e, refX, chart)
+            val yAxis = chart.axisLeft
+            val yFormatter = yAxis.valueFormatter
+            val bullet = '\u25CF'
+            val sb = SpannableStringBuilder()
+            sb.append(xFormatted)
+            for (ds in data.dataSets) {
+                val entry = ds.getEntryForXValue(refX, Float.NaN, DataSet.Rounding.CLOSEST)
+                    ?: continue
+                if (abs(entry.x - refX) > 0.001f) continue
+                val yFormatted = yFormatter.getFormattedValue(entry.y, yAxis)
+                val label = ds.label
+                val color = ds.getColor(0)
+                val lineStart = sb.length
+                sb.append('\n')
+                sb.append(bullet)
+                sb.setSpan(
+                    ForegroundColorSpan(color),
+                    lineStart + 1,
+                    lineStart + 2,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                sb.append(" ")
+                sb.append(label)
+                sb.append(": ")
+                sb.append(yFormatted)
             }
+            textView.text = sb
         }
         super.refreshContent(e, highlight)
     }
 
-    private fun resolveMarkerTitle(entry: Entry, refX: Float, chart: BarLineChartBase<*>): String {
+    private fun resolveMarkerTitle(entry: Entry<*>, refX: Float, chart: BarLineChartBase<*>): String {
         val metadata = entry.data as? Map<*, *>
         val label = metadata?.get("xLabel") as? String
         if (!label.isNullOrBlank()) return label
         val sourceX = (metadata?.get("sourceX") as? Number)?.toFloat()
         if (sourceX != null) return formatXAxisValue(sourceX)
-        return chart.xAxis.valueFormatter?.getAxisLabel(refX, chart.xAxis) ?: formatXAxisValue(refX)
+        return chart.xAxis.valueFormatter.getFormattedValue(refX, chart.xAxis)
     }
 
     private fun formatXAxisValue(value: Float): String {
@@ -79,17 +75,17 @@ internal class ChartMarkerView(
     private val gapPx: Float
         get() = 8f * resources.displayMetrics.density
 
-    override fun getOffset(): MPPointF {
-        return MPPointF(-(width / 2f), gapPx)
-    }
+    override var offset: MPPointF
+        get() = MPPointF(-(width / 2f), gapPx)
+        set(_) = Unit
 
     override fun getOffsetForDrawingAtPoint(posX: Float, posY: Float): MPPointF {
         val chart = chartView ?: return MPPointF(-(width / 2f), gapPx)
         val vph = chart.viewPortHandler
-        val contentLeft = vph.contentLeft()
-        val contentRight = vph.contentRight()
-        val contentTop = vph.contentTop()
-        val contentBottom = vph.contentBottom()
+        val contentLeft = vph.contentLeft
+        val contentRight = vph.contentRight
+        val contentTop = vph.contentTop
+        val contentBottom = vph.contentBottom
         val gap = gapPx
         var offsetX: Float
         var offsetY: Float
