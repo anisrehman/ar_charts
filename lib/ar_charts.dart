@@ -43,8 +43,9 @@ const MethodChannel _arChartsChannel = MethodChannel('ar_charts');
 /// chart engine (MPAndroidChart on Android, Charts on iOS).
 ///
 /// Use [series] for data. Optionally configure [xAxis], [leftAxis], [rightAxis],
-/// [legend], [interaction], [viewport], [marker], and [animation]. [height] and
-/// [padding] control layout. On unsupported platforms (e.g. web) renders nothing.
+/// [xAxisMarks], [legend], [interaction], [viewport], [marker], and [animation].
+/// [height] and [padding] control layout. On unsupported platforms (e.g. web)
+/// renders nothing.
 ///
 /// The chart updates automatically when [series] or other config changes (e.g.
 /// after loading data from an API), without requiring a [Key].
@@ -53,6 +54,7 @@ class LineChart extends StatefulWidget {
     super.key,
     required this.series,
     this.xAxis,
+    this.xAxisMarks = const [],
     this.leftAxis,
     this.rightAxis = const AxisConfig(enabled: false),
     this.defaultLineStyle,
@@ -68,6 +70,10 @@ class LineChart extends StatefulWidget {
 
   final List<LineSeries> series;
   final AxisConfig? xAxis;
+
+  /// Labels drawn at x positions. These are not data points and have no y value,
+  /// so they do not change the y-axis scale.
+  final List<XAxisMark> xAxisMarks;
   final AxisConfig? leftAxis;
   final AxisConfig? rightAxis;
   final LineStyle? defaultLineStyle;
@@ -91,6 +97,7 @@ class LineChart extends StatefulWidget {
     return {
       'series': series.map((item) => item.toMap()).toList(),
       'xAxis': xAxis?.toMap(),
+      'xAxisMarks': xAxisMarks.map((mark) => mark.toMap()).toList(),
       'leftAxis': leftAxis?.toMap(),
       'rightAxis': rightAxis?.toMap(),
       'defaultLineStyle': defaultLineStyle?.toMap(),
@@ -348,6 +355,31 @@ class LinePoint {
 
   Map<String, Object> toMap() {
     return {'x': x, 'y': y};
+  }
+}
+
+/// A label drawn at an x position on a [LineChart].
+///
+/// This is not a data point. It has no y value, so a payout label can sit on a
+/// date without pulling the market-value axis down.
+class XAxisMark {
+  const XAxisMark({required this.x, required this.label, this.color});
+
+  /// Same x scale as [LinePoint.x], such as milliseconds since epoch.
+  final double x;
+
+  /// Text drawn at that x, such as "Div" or "\$3.2K".
+  final String label;
+
+  /// Optional label color. When null, the native chart uses its axis label color.
+  final Color? color;
+
+  Map<String, Object?> toMap() {
+    return {
+      'x': x,
+      'label': label,
+      'color': color?.toARGB32(),
+    };
   }
 }
 

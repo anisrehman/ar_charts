@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
@@ -70,6 +71,7 @@ class LineChartPlatformView(
         chart.data = LineData(dataSets)
 
         applyAxis(chart.xAxis, params["xAxis"] as? Map<String, Any?>, AxisType.X)
+        applyXAxisMarks(params["xAxisMarks"] as? List<*>)
         applyAxis(chart.axisLeft, params["leftAxis"] as? Map<String, Any?>, AxisType.Y)
         applyAxis(chart.axisRight, params["rightAxis"] as? Map<String, Any?>, AxisType.Y)
 
@@ -220,6 +222,28 @@ class LineChartPlatformView(
         }
         YAxisValueFormatter.fromAxisMap(axisMap)?.let { formatter ->
             axis.valueFormatter = formatter
+        }
+    }
+
+    // Labels at x positions only. Limit lines are not data entries, so they do not
+    // change the y-axis range. Keep in sync with iOS applyXAxisMarks.
+    private fun applyXAxisMarks(marks: List<*>?) {
+        val xAxis = chart.xAxis
+        xAxis.removeAllLimitLines()
+        xAxis.setDrawLimitLinesBehindData(false)
+        if (marks == null) return
+        for (item in marks) {
+            val markMap = item as? Map<*, *> ?: continue
+            val x = (markMap["x"] as? Number)?.toFloat() ?: continue
+            val label = markMap["label"] as? String ?: continue
+            if (label.isEmpty()) continue
+            val limitLine = LimitLine(x, label)
+            limitLine.lineWidth = 0f
+            limitLine.lineColor = Color.TRANSPARENT
+            limitLine.textColor = (markMap["color"] as? Number)?.toInt() ?: defaultAxisTextColor
+            limitLine.textSize = 10f
+            limitLine.labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
+            xAxis.addLimitLine(limitLine)
         }
     }
 
