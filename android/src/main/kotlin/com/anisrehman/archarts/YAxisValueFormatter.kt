@@ -1,7 +1,7 @@
 package com.anisrehman.archarts
 
 import com.github.mikephil.charting.components.AxisBase
-import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.formatter.IAxisValueFormatter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -14,9 +14,9 @@ class YAxisValueFormatter(
     private val formatType: String,
     private val decimals: Int = 1,
     private val dateFormatPattern: String = "MMM d"
-) : ValueFormatter() {
+) : IAxisValueFormatter {
 
-    override fun getAxisLabel(value: Float, axis: AxisBase?): String {
+    override fun getFormattedValue(value: Float, axis: AxisBase): String {
         return when (formatType) {
             "compact" -> formatCompact(value.toDouble(), axis)
             "decimal" -> String.format(Locale.US, "%.${decimals}f", value)

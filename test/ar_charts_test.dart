@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ar_charts/ar_charts.dart';
 import 'package:ar_charts/ar_charts_platform_interface.dart';
@@ -17,6 +18,13 @@ void main() {
 
   test('$MethodChannelArCharts is the default instance', () {
     expect(initialPlatform, isInstanceOf<MethodChannelArCharts>());
+  });
+
+  test('XAxisMark serializes x and label without a y value', () {
+    const mark = XAxisMark(x: 10, label: r'$3.2K', color: Color(0xFF00AA00));
+
+    expect(mark.toMap(), {'x': 10, 'label': r'$3.2K', 'color': 0xFF00AA00});
+    expect(mark.toMap().containsKey('y'), isFalse);
   });
 
   test('getPlatformVersion', () async {

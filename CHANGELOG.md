@@ -1,3 +1,8 @@
+## 0.2.5
+
+* Line charts can show x-axis marks (`XAxisMark`): a label at a date with no y value, so payout labels do not change the market-value scale.
+* Updated the Android chart engine to MPAndroidChart 4.0.1. Android `minSdk` is now 23.
+
 ## 0.2.4
 
 * Bumped package version and refreshed dependency lockfiles for Flutter/Dart SDK compatibility.

@@ -35,7 +35,7 @@ class BarChartPlatformView(
 
     override fun dispose() {
         markerHelper.cancelAutoHide()
-        chart.setOnChartValueSelectedListener(null)
+        chart.onChartValueSelectedListener = null
         ChartViewRegistry.unregisterBarChart(viewId)
     }
 
@@ -69,7 +69,7 @@ class BarChartPlatformView(
                     BarEntry(
                         groupIndex.toFloat(),
                         y,
-                        mapOf("sourceX" to sourceX, "xLabel" to xLabel)
+                        data = mapOf("sourceX" to sourceX, "xLabel" to xLabel)
                     )
                 }
             } else {
@@ -85,7 +85,7 @@ class BarChartPlatformView(
                 }
             }
             val label = seriesMap["label"] as? String
-            val dataSet = BarDataSet(entries, label ?: "")
+            val dataSet: BarDataSet<*> = BarDataSet(entries, label ?: "")
             val seriesId = seriesMap["id"] as? String
             val styleMap = seriesId?.let { id -> perSeriesStyle?.get(id) as? Map<String, Any?> }
                 ?: defaultStyle
@@ -122,7 +122,7 @@ class BarChartPlatformView(
         chart.invalidate()
     }
 
-    private fun applyBarStyle(dataSet: BarDataSet, styleMap: Map<String, Any?>?): Float? {
+    private fun applyBarStyle(dataSet: BarDataSet<*>, styleMap: Map<String, Any?>?): Float? {
         if (styleMap == null) return null
 
         val barColor = (styleMap["barColor"] as? Number)?.toInt()
@@ -131,7 +131,7 @@ class BarChartPlatformView(
         }
         val drawValues = styleMap["drawValues"] as? Boolean
         if (drawValues != null) {
-            dataSet.setDrawValues(drawValues)
+            dataSet.isDrawValuesEnabled = drawValues
         }
         return (styleMap["barWidth"] as? Number)?.toFloat()
     }
@@ -140,7 +140,7 @@ class BarChartPlatformView(
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
         axis.textColor = defaultAxisTextColor
-        axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
+        axis.isDrawGridLinesEnabled = axisMap["drawGridLines"] as? Boolean ?: true
         val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
         if (gridLineColor != null) {
             axis.gridColor = gridLineColor
@@ -157,7 +157,7 @@ class BarChartPlatformView(
         if (gridLineWidth != null) {
             axis.gridLineWidth = gridLineWidth
         }
-        axis.setDrawAxisLine(axisMap["drawAxisLine"] as? Boolean ?: true)
+        axis.isDrawAxisLineEnabled = axisMap["drawAxisLine"] as? Boolean ?: true
 
         val min = (axisMap["min"] as? Number)?.toFloat()
         val max = (axisMap["max"] as? Number)?.toFloat()
@@ -166,7 +166,8 @@ class BarChartPlatformView(
 
         val labelCount = axisMap["labelCount"] as? Int
         if (labelCount != null) {
-            axis.setLabelCount(labelCount, true)
+            axis.labelCount = labelCount
+            axis.isForceLabelsEnabled = true
         }
         if (type == AxisType.X) {
             axis.position = XAxis.XAxisPosition.BOTTOM
@@ -180,7 +181,7 @@ class BarChartPlatformView(
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
         axis.textColor = defaultAxisTextColor
-        axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
+        axis.isDrawGridLinesEnabled = axisMap["drawGridLines"] as? Boolean ?: true
         val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
         if (gridLineColor != null) {
             axis.gridColor = gridLineColor
@@ -197,7 +198,7 @@ class BarChartPlatformView(
         if (gridLineWidth != null) {
             axis.gridLineWidth = gridLineWidth
         }
-        axis.setDrawAxisLine(axisMap["drawAxisLine"] as? Boolean ?: true)
+        axis.isDrawAxisLineEnabled = axisMap["drawAxisLine"] as? Boolean ?: true
 
         val min = (axisMap["min"] as? Number)?.toFloat()
         val max = (axisMap["max"] as? Number)?.toFloat()
@@ -206,7 +207,8 @@ class BarChartPlatformView(
 
         val labelCount = axisMap["labelCount"] as? Int
         if (labelCount != null) {
-            axis.setLabelCount(labelCount, true)
+            axis.labelCount = labelCount
+            axis.isForceLabelsEnabled = true
         }
 
         YAxisValueFormatter.fromAxisMap(axisMap)?.let { formatter ->
@@ -231,7 +233,7 @@ class BarChartPlatformView(
         axis: XAxis,
         barGroup: Map<String, Any?>?,
         data: BarData,
-        dataSets: List<BarDataSet>,
+        dataSets: List<BarDataSet<*>>,
         groupedXAxisContext: GroupedXAxisContext?
     ) {
         if (barGroup == null || dataSets.size < 2) return
@@ -241,7 +243,7 @@ class BarChartPlatformView(
         val centerAxisLabels = barGroup["centerAxisLabels"] as? Boolean ?: true
 
         data.groupBars(fromX, groupSpace, barSpace)
-        axis.setCenterAxisLabels(centerAxisLabels)
+        axis.isCenterAxisLabelsEnabled = centerAxisLabels
         axis.granularity = 1f
         axis.valueFormatter = IndexAxisValueFormatter(
             groupedXAxisContext?.groupLabels ?: emptyList()
@@ -299,7 +301,7 @@ class BarChartPlatformView(
         }
 
         legend.orientation = Legend.LegendOrientation.HORIZONTAL
-        legend.setDrawInside(false)
+        legend.isDrawInsideEnabled = false
     }
 
     private fun applyInteraction(interactionMap: Map<String, Any?>?) {
@@ -308,8 +310,8 @@ class BarChartPlatformView(
         val dragEnabled = interactionMap["dragEnabled"] as? Boolean ?: true
         val highlightEnabled = interactionMap["highlightEnabled"] as? Boolean ?: true
 
-        chart.setScaleEnabled(zoomEnabled)
-        chart.setPinchZoom(zoomEnabled)
+        chart.isScaleEnabled = zoomEnabled
+        chart.isPinchZoomEnabled = zoomEnabled
         chart.isDragEnabled = dragEnabled
         chart.isHighlightPerTapEnabled = highlightEnabled
         chart.isHighlightPerDragEnabled = highlightEnabled

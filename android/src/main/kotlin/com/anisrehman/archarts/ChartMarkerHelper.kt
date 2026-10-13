@@ -20,7 +20,7 @@ internal class ChartMarkerHelper(
     fun applyMarker(chart: BarLineChartBase<*>, markerMap: Map<String, Any?>?) {
         cancelAutoHide()
         chart.marker = null
-        chart.setOnChartValueSelectedListener(null)
+        chart.onChartValueSelectedListener = null
 
         if (markerMap == null) return
         val enabled = markerMap["enabled"] as? Boolean ?: false
@@ -33,15 +33,15 @@ internal class ChartMarkerHelper(
         val autoHideSeconds = (markerMap["autoHideDurationSeconds"] as? Number)?.toDouble() ?: 3.5
         if (autoHideSeconds > 0.0) {
             val delayMs = (autoHideSeconds * 1000).toLong()
-            chart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
-                override fun onValueSelected(e: Entry?, h: Highlight?) {
+            chart.onChartValueSelectedListener = object : OnChartValueSelectedListener {
+                override fun onValueSelected(e: Entry<*>, h: Highlight) {
                     scheduleAutoHide(chart, delayMs)
                 }
 
                 override fun onNothingSelected() {
                     cancelAutoHide()
                 }
-            })
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
@@ -26,7 +27,7 @@ class LineChartPlatformView(
     private val markerHelper = ChartMarkerHelper(context, Handler(Looper.getMainLooper()))
 
     init {
-        chart.setHighlighter(XAxisSnapLineChartHighlighter(chart))
+        chart.highlighter = XAxisSnapLineChartHighlighter(chart)
         chart.renderer = SelectedPointLineChartRenderer(chart, chart.animator, chart.viewPortHandler)
         ChartViewRegistry.registerLineChart(viewId, this)
         applyConfig(params)
@@ -36,7 +37,7 @@ class LineChartPlatformView(
 
     override fun dispose() {
         markerHelper.cancelAutoHide()
-        chart.setOnChartValueSelectedListener(null)
+        chart.onChartValueSelectedListener = null
         ChartViewRegistry.unregisterLineChart(viewId)
     }
 
@@ -70,6 +71,7 @@ class LineChartPlatformView(
         chart.data = LineData(dataSets)
 
         applyAxis(chart.xAxis, params["xAxis"] as? Map<String, Any?>, AxisType.X)
+        applyXAxisMarks(params["xAxisMarks"] as? List<*>)
         applyAxis(chart.axisLeft, params["leftAxis"] as? Map<String, Any?>, AxisType.Y)
         applyAxis(chart.axisRight, params["rightAxis"] as? Map<String, Any?>, AxisType.Y)
 
@@ -97,19 +99,22 @@ class LineChartPlatformView(
         }
         val drawCircles = styleMap["drawCircles"] as? Boolean
         if (drawCircles != null) {
-            dataSet.setDrawCircles(drawCircles)
+            dataSet.isDrawCirclesEnabled = drawCircles
         }
         val circleColor = (styleMap["circleColor"] as? Number)?.toInt()
         if (circleColor != null) {
-            dataSet.setCircleColor(circleColor)
+            dataSet.circleColor = circleColor
         } else if (lineColor != null) {
-            dataSet.setCircleColor(lineColor)
+            dataSet.circleColor = lineColor
         }
         val circleRadius = (styleMap["circleRadius"] as? Number)?.toFloat()
         if (circleRadius != null) {
-            dataSet.circleRadius = circleRadius
-            // radius <= 0 means no visible circles, so disable drawing.
-            if (circleRadius <= 0f) dataSet.setDrawCircles(false)
+            // 4.0 stores radius in dp and ignores values below 1.
+            if (circleRadius < 1f) {
+                dataSet.isDrawCirclesEnabled = false
+            } else {
+                dataSet.circleRadius = circleRadius
+            }
         }
         val selectedPointMap = styleMap["selectedPoint"] as? Map<String, Any?>
         if (selectedPointMap != null) {
@@ -129,7 +134,7 @@ class LineChartPlatformView(
         }
         val drawValues = styleMap["drawValues"] as? Boolean
         if (drawValues != null) {
-            dataSet.setDrawValues(drawValues)
+            dataSet.isDrawValuesEnabled = drawValues
         }
         val cubic = styleMap["cubic"] as? Boolean
         if (cubic == true) {
@@ -146,7 +151,7 @@ class LineChartPlatformView(
         }
         val fill = styleMap["fill"] as? String
         if (fill == "solid") {
-            dataSet.setDrawFilled(true)
+            dataSet.isDrawFilledEnabled = true
             val fillColorExplicit = (styleMap["fillColor"] as? Number)?.toInt()
             val fillColor = if (fillColorExplicit != null) {
                 fillColorExplicit
@@ -155,23 +160,19 @@ class LineChartPlatformView(
                 val fillAlpha = 51 // 0.2
                 (fillAlpha shl 24) or (baseColor and 0x00FFFFFF)
             }
-            dataSet.setFillColor(fillColor)
+            dataSet.fillColor = fillColor
         } else if (fill == "gradient") {
-            dataSet.setDrawFilled(true)
+            dataSet.isDrawFilledEnabled = true
             val lineColorArgb = (styleMap["lineColor"] as? Number)?.toInt() ?: 0xFF000000.toInt()
             val topArgb = (styleMap["fillColorTop"] as? Number)?.toInt() ?: lineColorArgb
             val bottomArgb = (styleMap["fillColorBottom"] as? Number)?.toInt() ?: 0
             val topWithFillAlpha = applyFillAlpha(topArgb, dataSet.fillAlpha)
             val bottomWithFillAlpha = applyFillAlpha(bottomArgb, dataSet.fillAlpha)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                val gradientDrawable = android.graphics.drawable.GradientDrawable(
-                    android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
-                    intArrayOf(topWithFillAlpha, bottomWithFillAlpha)
-                )
-                dataSet.fillDrawable = gradientDrawable
-            } else {
-                dataSet.setFillColor(topWithFillAlpha)
-            }
+            val gradientDrawable = android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(topWithFillAlpha, bottomWithFillAlpha)
+            )
+            dataSet.fillDrawable = gradientDrawable
         }
     }
 
@@ -186,7 +187,7 @@ class LineChartPlatformView(
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
         axis.textColor = defaultAxisTextColor
-        axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
+        axis.isDrawGridLinesEnabled = axisMap["drawGridLines"] as? Boolean ?: true
         val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
         if (gridLineColor != null) {
             axis.gridColor = gridLineColor
@@ -203,7 +204,7 @@ class LineChartPlatformView(
         if (gridLineWidth != null) {
             axis.gridLineWidth = gridLineWidth
         }
-        axis.setDrawAxisLine(axisMap["drawAxisLine"] as? Boolean ?: true)
+        axis.isDrawAxisLineEnabled = axisMap["drawAxisLine"] as? Boolean ?: true
 
         val min = (axisMap["min"] as? Number)?.toFloat()
         val max = (axisMap["max"] as? Number)?.toFloat()
@@ -212,7 +213,8 @@ class LineChartPlatformView(
 
         val labelCount = axisMap["labelCount"] as? Int
         if (labelCount != null) {
-            axis.setLabelCount(labelCount, true)
+            axis.labelCount = labelCount
+            axis.isForceLabelsEnabled = true
         }
 
         if (type == AxisType.X) {
@@ -223,11 +225,33 @@ class LineChartPlatformView(
         }
     }
 
+    // Labels at x positions only. Limit lines are not data entries, so they do not
+    // change the y-axis range. Keep in sync with iOS applyXAxisMarks.
+    private fun applyXAxisMarks(marks: List<*>?) {
+        val xAxis = chart.xAxis
+        xAxis.removeAllLimitLines()
+        xAxis.isDrawLimitLinesBehindDataEnabled = false
+        if (marks == null) return
+        for (item in marks) {
+            val markMap = item as? Map<*, *> ?: continue
+            val x = (markMap["x"] as? Number)?.toFloat() ?: continue
+            val label = markMap["label"] as? String ?: continue
+            if (label.isEmpty()) continue
+            val limitLine = LimitLine(x, label)
+            limitLine.lineWidth = 0f
+            limitLine.lineColor = Color.TRANSPARENT
+            limitLine.textColor = (markMap["color"] as? Number)?.toInt() ?: defaultAxisTextColor
+            limitLine.textSize = 10f
+            limitLine.labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
+            xAxis.addLimitLine(limitLine)
+        }
+    }
+
     private fun applyAxis(axis: YAxis, axisMap: Map<String, Any?>?, type: AxisType) {
         if (axisMap == null) return
         axis.isEnabled = axisMap["enabled"] as? Boolean ?: true
         axis.textColor = defaultAxisTextColor
-        axis.setDrawGridLines(axisMap["drawGridLines"] as? Boolean ?: true)
+        axis.isDrawGridLinesEnabled = axisMap["drawGridLines"] as? Boolean ?: true
         val gridLineColor = (axisMap["gridLineColor"] as? Number)?.toInt()
         if (gridLineColor != null) {
             axis.gridColor = gridLineColor
@@ -244,7 +268,7 @@ class LineChartPlatformView(
         if (gridLineWidth != null) {
             axis.gridLineWidth = gridLineWidth
         }
-        axis.setDrawAxisLine(axisMap["drawAxisLine"] as? Boolean ?: true)
+        axis.isDrawAxisLineEnabled = axisMap["drawAxisLine"] as? Boolean ?: true
 
         val min = (axisMap["min"] as? Number)?.toFloat()
         val max = (axisMap["max"] as? Number)?.toFloat()
@@ -253,7 +277,8 @@ class LineChartPlatformView(
 
         val labelCount = axisMap["labelCount"] as? Int
         if (labelCount != null) {
-            axis.setLabelCount(labelCount, true)
+            axis.labelCount = labelCount
+            axis.isForceLabelsEnabled = true
         }
 
         YAxisValueFormatter.fromAxisMap(axisMap)?.let { formatter ->
@@ -281,7 +306,7 @@ class LineChartPlatformView(
         }
 
         legend.orientation = Legend.LegendOrientation.HORIZONTAL
-        legend.setDrawInside(false)
+        legend.isDrawInsideEnabled = false
     }
 
     private fun applyInteraction(interactionMap: Map<String, Any?>?) {
@@ -290,8 +315,8 @@ class LineChartPlatformView(
         val dragEnabled = interactionMap["dragEnabled"] as? Boolean ?: true
         val highlightEnabled = interactionMap["highlightEnabled"] as? Boolean ?: true
 
-        chart.setScaleEnabled(zoomEnabled)
-        chart.setPinchZoom(zoomEnabled)
+        chart.isScaleEnabled = zoomEnabled
+        chart.isPinchZoomEnabled = zoomEnabled
         chart.isDragEnabled = dragEnabled
         chart.isHighlightPerTapEnabled = highlightEnabled
         chart.isHighlightPerDragEnabled = highlightEnabled
