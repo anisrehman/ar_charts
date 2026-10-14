@@ -170,13 +170,14 @@ class LineChartExamplePage extends StatelessWidget {
               xAxisMarks: const [
                 XAxisMark(
                   x: 1772496000000.0,
-                  label: r'$1.2K',
+                  label: r' D ',
                   color: Colors.green,
                 ),
                 XAxisMark(
                   x: 1772064000000.0,
-                  label: r'$800',
+                  label: r' D ',
                   color: Colors.orange,
+                  tooltip: r'$800',
                 ),
               ],
               height: 280,

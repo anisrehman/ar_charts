@@ -21,6 +21,16 @@ internal class ChartMarkerView(
 
     private val textView = findViewById<android.widget.TextView>(R.id.markerText)
 
+    /** Shows [text] alone, for an [XAxisMark] tap. Series rows are omitted. */
+    fun refreshMark(text: String) {
+        textView.text = text
+        measure(
+            MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+            MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+        )
+        layout(0, 0, measuredWidth, measuredHeight)
+    }
+
     override fun refreshContent(e: Entry<*>, highlight: Highlight) {
         val chart = chartView as? BarLineChartBase<*>
         val data = chart?.data

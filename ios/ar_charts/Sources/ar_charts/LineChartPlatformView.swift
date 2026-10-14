@@ -20,15 +20,17 @@ final class LineChartViewFactory: NSObject, FlutterPlatformViewFactory {
 }
 
 final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSupporting {
-    private let chartView: LineChartView
+    private let chartView: XAxisMarkLineChartView
     private let viewId: Int64
+    private var xAxisMarks: [XAxisMarkModel] = []
+    private let markTapRecognizer = UITapGestureRecognizer()
     var markerAutoHideSeconds: TimeInterval?
     var autoHideWorkItem: DispatchWorkItem?
 
     var chartViewForMarker: BarLineChartViewBase { chartView }
 
     init(frame: CGRect, viewId: Int64, params: [String: Any]) {
-        self.chartView = LineChartView(frame: frame)
+        self.chartView = XAxisMarkLineChartView(frame: frame)
         self.viewId = viewId
         super.init()
         chartView.renderer = SelectedPointLineChartRenderer(
@@ -36,6 +38,10 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
             animator: chartView.chartAnimator,
             viewPortHandler: chartView.viewPortHandler
         )
+        markTapRecognizer.addTarget(self, action: #selector(handleMarkTap(_:)))
+        markTapRecognizer.cancelsTouchesInView = false
+        markTapRecognizer.delegate = self
+        chartView.addGestureRecognizer(markTapRecognizer)
         ChartViewRegistry.registerLineChart(viewId: viewId, view: self)
         applyConfig(params: params)
     }
@@ -54,6 +60,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
     }
 
     private func applyConfig(params: [String: Any]) {
+        clearMarkTooltip()
         let series = params["series"] as? [[String: Any]] ?? []
         let defaultStyle = params["defaultLineStyle"] as? [String: Any]
         let perSeriesStyle = params["perSeriesStyle"] as? [String: Any]
@@ -219,6 +226,7 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
         let xAxis = chartView.xAxis
         xAxis.removeAllLimitLines()
         xAxis.drawLimitLinesBehindDataEnabled = false
+        xAxisMarks = []
         guard let marks else { return }
         for markMap in marks {
             let x: Double
@@ -230,6 +238,8 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
                 continue
             }
             guard let label = markMap["label"] as? String, !label.isEmpty else { continue }
+            let tooltip = (markMap["tooltip"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? label
+            xAxisMarks.append(XAxisMarkModel(x: x, label: label, tooltip: tooltip))
             let limitLine = ChartLimitLine(limit: x, label: label)
             limitLine.lineWidth = 0
             limitLine.lineColor = .clear
@@ -238,10 +248,82 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
             } else {
                 limitLine.valueTextColor = defaultAxisLabelColor
             }
-            limitLine.valueFont = .systemFont(ofSize: 10)
+            limitLine.valueFont = .systemFont(ofSize: XAxisMarkMetrics.textSize)
             limitLine.labelPosition = .rightBottom
             xAxis.addLimitLine(limitLine)
         }
+    }
+
+    /// The chart's own tap highlights a series point in the same turn. This runs
+    /// afterward so a label tap can replace that highlight with the mark tooltip.
+    @objc private func handleMarkTap(_ recognizer: UITapGestureRecognizer) {
+        let point = recognizer.location(in: chartView)
+        DispatchQueue.main.async { [weak self] in
+            self?.showMarkTooltip(at: point)
+        }
+    }
+
+    private func showMarkTooltip(at point: CGPoint) {
+        guard chartView.marker != nil, let mark = markAt(point) else {
+            if chartView.markTooltipText != nil {
+                clearMarkTooltip()
+                chartView.setNeedsDisplay()
+            }
+            return
+        }
+        chartView.markTooltipText = mark.tooltip
+        chartView.markTooltipX = mark.x
+        scheduleMarkTooltipHide()
+        chartView.highlightValue(nil, callDelegate: false)
+    }
+
+    private func clearMarkTooltip() {
+        chartView.markTooltipText = nil
+        chartView.markTooltipX = nil
+    }
+
+    private func scheduleMarkTooltipHide() {
+        autoHideWorkItem?.cancel()
+        guard let seconds = markerAutoHideSeconds, seconds > 0 else { return }
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.clearMarkTooltip()
+            self.chartView.highlightValue(nil, callDelegate: false)
+        }
+        autoHideWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: workItem)
+    }
+
+    /// Matches XAxisRenderer.renderLimitLineLabel for `.rightBottom`.
+    private func markAt(_ point: CGPoint) -> XAxisMarkModel? {
+        guard !xAxisMarks.isEmpty else { return nil }
+        let contentLeft = chartView.viewPortHandler.contentLeft
+        let contentRight = chartView.viewPortHandler.contentRight
+        let contentBottom = chartView.viewPortHandler.contentBottom
+        let font = UIFont.systemFont(ofSize: XAxisMarkMetrics.textSize)
+        let xOffset = XAxisMarkMetrics.lineWidth + XAxisMarkMetrics.xOffset
+        let yOffset = 2.0 + XAxisMarkMetrics.yOffset
+        let transformer = chartView.getTransformer(forAxis: .left)
+        var closest: XAxisMarkModel?
+        var closestDistance = CGFloat.greatestFiniteMagnitude
+        for mark in xAxisMarks {
+            let pixel = transformer.pixelForValues(x: mark.x, y: 0)
+            if pixel.x < contentLeft || pixel.x > contentRight { continue }
+            let textSize = mark.label.size(withAttributes: [.font: font])
+            let rect = CGRect(
+                x: pixel.x + xOffset,
+                y: contentBottom - textSize.height - yOffset,
+                width: textSize.width,
+                height: textSize.height
+            ).insetBy(dx: -XAxisMarkMetrics.touchSlop, dy: -XAxisMarkMetrics.touchSlop)
+            if !rect.contains(point) { continue }
+            let distance = abs(point.x - rect.midX)
+            if distance < closestDistance {
+                closest = mark
+                closestDistance = distance
+            }
+        }
+        return closest
     }
 
     private func applyLegend(legendMap: [String: Any]?) {
@@ -325,9 +407,55 @@ final class LineChartPlatformView: NSObject, FlutterPlatformView, ChartMarkerSup
     }
 }
 
+private struct XAxisMarkModel {
+    let x: Double
+    let label: String
+    let tooltip: String
+}
+
+private enum XAxisMarkMetrics {
+    static let textSize: CGFloat = 10
+    /// ChartLimitLine clamps a requested width of 0 to 0.2.
+    static let lineWidth: CGFloat = 0.2
+    static let xOffset: CGFloat = 5
+    static let yOffset: CGFloat = 5
+    static let touchSlop: CGFloat = 12
+}
+
+/// Draws an x-axis mark tooltip without adding a data entry. DGCharts only draws
+/// markers for highlighted entries, and a mark has no y value.
+private final class XAxisMarkLineChartView: LineChartView {
+    var markTooltipText: String?
+    var markTooltipX: Double?
+
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        guard let text = markTooltipText,
+              let x = markTooltipX,
+              let marker = marker as? ChartMarkerView,
+              let context = UIGraphicsGetCurrentContext() else { return }
+        marker.refreshMark(text)
+        let pixel = getTransformer(forAxis: .left).pixelForValues(x: x, y: 0)
+        marker.draw(context: context, point: CGPoint(x: pixel.x, y: viewPortHandler.contentBottom))
+    }
+}
+
 // MARK: - ChartMarkerSupporting (ChartViewDelegate) - It will be called by the framework when the user taps on a value.
+extension LineChartPlatformView: UIGestureRecognizerDelegate {
+    /// Only claim taps that land on an x-axis mark label. Every other tap stays
+    /// with the chart so a line point can still show its marker.
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldReceive touch: UITouch
+    ) -> Bool {
+        gestureRecognizer === markTapRecognizer
+            && markAt(touch.location(in: chartView)) != nil
+    }
+}
+
 extension LineChartPlatformView {
     func chartValueSelected(_ chartView: ChartViewBase, entry: ChartDataEntry, highlight: Highlight) {
+        clearMarkTooltip()
         handleChartValueSelected(chartView, entry: entry, highlight: highlight)
     }
 

@@ -1,3 +1,9 @@
+## 0.2.6
+
+* Tapping an `XAxisMark` label shows its value in the chart marker. Set `tooltip` when the bubble text should differ from the label.
+* Fixed iOS line-series tooltips not appearing after x-axis mark taps were added.
+* Fixed Android showing the line-series marker for a frame before the x-axis mark tooltip.
+
 ## 0.2.5
 
 * Line charts can show x-axis marks (`XAxisMark`): a label at a date with no y value, so payout labels do not change the market-value scale.
