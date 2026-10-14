@@ -44,6 +44,16 @@ final class ChartMarkerView: MarkerView {
         containerView.addSubview(textLabel)
     }
 
+    /// Shows [text] alone, for an x-axis mark tap. Series rows are omitted.
+    func refreshMark(_ text: String) {
+        let textColor = textLabel.textColor ?? .black
+        textLabel.attributedText = NSAttributedString(
+            string: text,
+            attributes: [.foregroundColor: textColor]
+        )
+        sizeToText()
+    }
+
     override func refreshContent(entry: ChartDataEntry, highlight: Highlight) {
         guard let chart = chartView as? BarLineChartViewBase,
               let data = chart.data else {
@@ -82,13 +92,17 @@ final class ChartMarkerView: MarkerView {
             ))
         }
         textLabel.attributedText = attr
+        sizeToText()
+        super.refreshContent(entry: entry, highlight: highlight)
+    }
+
+    private func sizeToText() {
         let maxLabelWidth: CGFloat = 220
         let labelSize = textLabel.sizeThatFits(CGSize(width: maxLabelWidth, height: .greatestFiniteMagnitude))
         let p = Self.padding
         bounds = CGRect(x: 0, y: 0, width: labelSize.width + 2 * p, height: labelSize.height + 2 * p)
         containerView.frame = CGRect(origin: .zero, size: bounds.size)
         textLabel.frame = CGRect(x: p, y: p, width: labelSize.width, height: labelSize.height)
-        super.refreshContent(entry: entry, highlight: highlight)
     }
 
     /// Formats a number for marker display: whole numbers as "1.0", decimals limited to 2 places (e.g. 25886.45).

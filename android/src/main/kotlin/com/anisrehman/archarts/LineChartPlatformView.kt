@@ -1,7 +1,11 @@
 package com.anisrehman.archarts
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.view.MotionEvent
 import android.view.View
 import android.os.Handler
 import android.os.Looper
@@ -13,7 +17,12 @@ import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.listener.ChartTouchListener
+import com.github.mikephil.charting.listener.OnChartGestureListener
+import com.github.mikephil.charting.utils.MPPointD
+import com.github.mikephil.charting.utils.Utils
 import io.flutter.plugin.platform.PlatformView
+import kotlin.math.min
 
 private val defaultAxisTextColor: Int = Color.parseColor("#333333")
 
@@ -23,12 +32,39 @@ class LineChartPlatformView(
     private val params: Map<String, Any?>
 ) : PlatformView {
 
-    private val chart: LineChart = LineChart(context)
+    private val chart: XAxisMarkLineChart = XAxisMarkLineChart(context)
     private val markerHelper = ChartMarkerHelper(context, Handler(Looper.getMainLooper()))
+    private val xAxisMarks = mutableListOf<XAxisMarkModel>()
+    private val markLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     init {
         chart.highlighter = XAxisSnapLineChartHighlighter(chart)
         chart.renderer = SelectedPointLineChartRenderer(chart, chart.animator, chart.viewPortHandler)
+        markerHelper.onSeriesSelected = { chart.markTooltip = null }
+        markerHelper.onAutoHide = { chart.markTooltip = null }
+        chart.onChartGestureListener = object : OnChartGestureListener {
+            override fun onChartGestureStart(me: MotionEvent, lastPerformedGesture: ChartTouchListener.ChartGesture) = Unit
+            override fun onChartGestureEnd(me: MotionEvent, lastPerformedGesture: ChartTouchListener.ChartGesture) = Unit
+            override fun onChartLongPressed(me: MotionEvent) = Unit
+            override fun onChartDoubleTapped(me: MotionEvent) = Unit
+            override fun onChartSingleTapped(me: MotionEvent) {
+                val x = me.x
+                val y = me.y
+                // Highlight runs after this callback. Skip it when the tap is on a
+                // mark so the series marker is not drawn for one frame first.
+                if (markAt(x, y) != null && chart.marker is ChartMarkerView) {
+                    val highlightWasEnabled = chart.isHighlightPerTapEnabled
+                    chart.isHighlightPerTapEnabled = false
+                    showMarkTooltip(x, y)
+                    chart.post { chart.isHighlightPerTapEnabled = highlightWasEnabled }
+                    return
+                }
+                chart.post { showMarkTooltip(x, y) }
+            }
+            override fun onChartFling(me1: MotionEvent?, me2: MotionEvent, velocityX: Float, velocityY: Float) = Unit
+            override fun onChartScale(me: MotionEvent, scaleX: Float, scaleY: Float) = Unit
+            override fun onChartTranslate(me: MotionEvent, dX: Float, dY: Float) = Unit
+        }
         ChartViewRegistry.registerLineChart(viewId, this)
         applyConfig(params)
     }
@@ -38,6 +74,7 @@ class LineChartPlatformView(
     override fun dispose() {
         markerHelper.cancelAutoHide()
         chart.onChartValueSelectedListener = null
+        chart.onChartGestureListener = null
         ChartViewRegistry.unregisterLineChart(viewId)
     }
 
@@ -231,20 +268,78 @@ class LineChartPlatformView(
         val xAxis = chart.xAxis
         xAxis.removeAllLimitLines()
         xAxis.isDrawLimitLinesBehindDataEnabled = false
+        xAxisMarks.clear()
         if (marks == null) return
         for (item in marks) {
             val markMap = item as? Map<*, *> ?: continue
             val x = (markMap["x"] as? Number)?.toFloat() ?: continue
             val label = markMap["label"] as? String ?: continue
             if (label.isEmpty()) continue
+            val tooltip = (markMap["tooltip"] as? String)?.takeIf { it.isNotEmpty() } ?: label
+            xAxisMarks.add(XAxisMarkModel(x, label, tooltip))
             val limitLine = LimitLine(x, label)
             limitLine.lineWidth = 0f
             limitLine.lineColor = Color.TRANSPARENT
             limitLine.textColor = (markMap["color"] as? Number)?.toInt() ?: defaultAxisTextColor
-            limitLine.textSize = 10f
+            limitLine.textSize = MARK_TEXT_SIZE_DP
             limitLine.labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
             xAxis.addLimitLine(limitLine)
         }
+    }
+
+    private fun showMarkTooltip(touchX: Float, touchY: Float) {
+        val mark = markAt(touchX, touchY)
+        val markerView = chart.marker as? ChartMarkerView
+        if (mark == null || markerView == null) {
+            if (chart.markTooltip != null) {
+                chart.markTooltip = null
+                chart.invalidate()
+            }
+            return
+        }
+        chart.markTooltip = XAxisMarkTooltip(mark.x, mark.tooltip)
+        markerHelper.cancelAutoHide()
+        markerHelper.armAutoHide(chart)
+        chart.highlightValue(null, false)
+    }
+
+    // Matches XAxisRenderer.renderLimitLineLabel for RIGHT_BOTTOM: text sits just
+    // to the right of the x position, along the bottom of the plot.
+    private fun markAt(touchX: Float, touchY: Float): XAxisMarkModel? {
+        if (xAxisMarks.isEmpty() || !chart.viewPortHandler.hasChartDimens()) return null
+        markLabelPaint.textSize = Utils.convertDpToPixel(MARK_TEXT_SIZE_DP)
+        val contentLeft = chart.viewPortHandler.contentLeft
+        val contentRight = chart.viewPortHandler.contentRight
+        val contentBottom = chart.viewPortHandler.contentBottom
+        val xOffsetPx = Utils.convertDpToPixel(MARK_LINE_WIDTH_DP) + Utils.convertDpToPixel(MARK_X_OFFSET_DP)
+        val baseline = contentBottom - (2f + Utils.convertDpToPixel(MARK_Y_OFFSET_DP))
+        val slop = Utils.convertDpToPixel(MARK_TOUCH_SLOP_DP)
+        val fontMetrics = markLabelPaint.fontMetrics
+        var closest: XAxisMarkModel? = null
+        var closestDistance = Float.MAX_VALUE
+        for (mark in xAxisMarks) {
+            val pixel = chart.getTransformer(YAxis.AxisDependency.LEFT)
+                .getPixelForValues(mark.x, 0f)
+            val pixelX = pixel.x.toFloat()
+            MPPointD.recycleInstance(pixel)
+            if (pixelX < contentLeft || pixelX > contentRight) continue
+            val textWidth = markLabelPaint.measureText(mark.label)
+            val left = min(pixelX + xOffsetPx, contentRight - textWidth)
+            val rect = RectF(
+                left,
+                baseline + fontMetrics.ascent,
+                left + textWidth,
+                baseline + fontMetrics.descent,
+            )
+            rect.inset(-slop, -slop)
+            if (!rect.contains(touchX, touchY)) continue
+            val distance = kotlin.math.abs(touchX - rect.centerX())
+            if (distance < closestDistance) {
+                closest = mark
+                closestDistance = distance
+            }
+        }
+        return closest
     }
 
     private fun applyAxis(axis: YAxis, axisMap: Map<String, Any?>?, type: AxisType) {
@@ -362,4 +457,38 @@ class LineChartPlatformView(
     }
 
     private enum class AxisType { X, Y }
+
+    private companion object {
+        const val MARK_TEXT_SIZE_DP = 10f
+        const val MARK_LINE_WIDTH_DP = 0.2f
+        const val MARK_X_OFFSET_DP = 5f
+        const val MARK_Y_OFFSET_DP = 5f
+        const val MARK_TOUCH_SLOP_DP = 12f
+    }
+}
+
+private data class XAxisMarkModel(val x: Float, val label: String, val tooltip: String)
+
+private data class XAxisMarkTooltip(val x: Float, val text: String)
+
+/**
+ * Draws an x-axis mark tooltip without adding a data entry. MPAndroidChart only
+ * draws markers for highlighted entries, and a mark has no y value.
+ */
+private class XAxisMarkLineChart(context: Context) : LineChart(context) {
+    var markTooltip: XAxisMarkTooltip? = null
+
+    override fun drawMarkers(canvas: Canvas) {
+        val tooltip = markTooltip
+        val markerView = marker as? ChartMarkerView
+        if (tooltip != null && markerView != null) {
+            val pixel = getTransformer(YAxis.AxisDependency.LEFT)
+                .getPixelForValues(tooltip.x, 0f)
+            markerView.refreshMark(tooltip.text)
+            markerView.draw(canvas, pixel.x.toFloat(), viewPortHandler.contentBottom)
+            MPPointD.recycleInstance(pixel)
+            return
+        }
+        super.drawMarkers(canvas)
+    }
 }

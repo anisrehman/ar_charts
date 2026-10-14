@@ -5,7 +5,7 @@ A Flutter charts library for **Android** and **iOS** with line and bar charts, c
 ## Features
 
 - **Line charts** — Single or multiple series, optional cubic curves, solid or dashed line style, line area fill, markers, viewport/zoom
-- **X-axis marks** — Text labels at dates on a line chart, with no y value, so they do not change the y-axis scale
+- **X-axis marks** — Text labels at dates on a line chart, with no y value, so they do not change the y-axis scale. With markers enabled, tapping a label shows its value in the tooltip
 - **Bar charts** — Single or grouped bars, custom colors and widths
 - **Axes** — Configurable X, left Y, and right Y axes; min/max, label count, grid lines
 - **Value formats** — Compact (1K, 1.5M), decimal, or percent for axis labels
@@ -63,7 +63,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ar_charts: ^0.2.0
+  ar_charts: ^0.2.6
 ```
 
 Or from Git:
@@ -208,6 +208,7 @@ BarChart(
 |------|-------------|
 | `LineSeries` | `id`, `label`, and list of `LinePoint` (x, y). |
 | `LinePoint` | `x` (double), `y` (double). |
+| `XAxisMark` | `x`, `label`, optional `color` and `tooltip`. A label at an x position with no y value. When markers are enabled, tapping the label shows `tooltip`, or `label` when `tooltip` is omitted. |
 | `BarChartData` | `dataSets` (list of `BarChartDataSet`) and optional `group` (`BarGroupConfig`). |
 | `BarChartDataSet` | `id`, `label`, and list of `BarChartDataEntry` (x, y, optional label). |
 | `BarChartDataEntry` | `x`, `y`, and optional `label` for axis/tooltip. |
@@ -229,6 +230,7 @@ BarChart(
 
 ### LineChart-only
 
+- **X-axis marks**: `xAxisMarks` — labels at x positions that are not data points. Requires `MarkerConfig(enabled: true)` for the tap tooltip.
 - **Line draw style**: `LineStyle.lineDrawStyle` — `LineDrawSolid()` (default) or `LineDrawDashed(length:, gap:, phase:)` for dashed/dotted lines.
 - **Right axis**: `rightAxis` (default: disabled). Use for a second Y scale.
 - **Viewport**: `viewport` for visible X range and offsets (useful with zoom/drag).

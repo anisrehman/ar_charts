@@ -16,9 +16,17 @@ internal class ChartMarkerHelper(
     private val handler: Handler
 ) {
     private var autoHideRunnable: Runnable? = null
+    private var autoHideDelayMs: Long = 0
+
+    /** Clears an x-axis mark tooltip when a series point is selected. */
+    var onSeriesSelected: (() -> Unit)? = null
+
+    /** Clears an x-axis mark tooltip when the marker auto-hides. */
+    var onAutoHide: (() -> Unit)? = null
 
     fun applyMarker(chart: BarLineChartBase<*>, markerMap: Map<String, Any?>?) {
         cancelAutoHide()
+        autoHideDelayMs = 0
         chart.marker = null
         chart.onChartValueSelectedListener = null
 
@@ -31,17 +39,25 @@ internal class ChartMarkerHelper(
         chart.marker = marker
 
         val autoHideSeconds = (markerMap["autoHideDurationSeconds"] as? Number)?.toDouble() ?: 3.5
-        if (autoHideSeconds > 0.0) {
-            val delayMs = (autoHideSeconds * 1000).toLong()
-            chart.onChartValueSelectedListener = object : OnChartValueSelectedListener {
-                override fun onValueSelected(e: Entry<*>, h: Highlight) {
-                    scheduleAutoHide(chart, delayMs)
-                }
-
-                override fun onNothingSelected() {
-                    cancelAutoHide()
+        autoHideDelayMs = if (autoHideSeconds > 0.0) (autoHideSeconds * 1000).toLong() else 0L
+        chart.onChartValueSelectedListener = object : OnChartValueSelectedListener {
+            override fun onValueSelected(e: Entry<*>, h: Highlight) {
+                onSeriesSelected?.invoke()
+                if (autoHideDelayMs > 0L) {
+                    scheduleAutoHide(chart, autoHideDelayMs)
                 }
             }
+
+            override fun onNothingSelected() {
+                cancelAutoHide()
+            }
+        }
+    }
+
+    /** Starts the same auto-hide timer used after a series point is selected. */
+    fun armAutoHide(chart: BarLineChartBase<*>) {
+        if (autoHideDelayMs > 0L) {
+            scheduleAutoHide(chart, autoHideDelayMs)
         }
     }
 
@@ -53,6 +69,7 @@ internal class ChartMarkerHelper(
     private fun scheduleAutoHide(chart: BarLineChartBase<*>, delayMs: Long) {
         cancelAutoHide()
         autoHideRunnable = Runnable {
+            onAutoHide?.invoke()
             chart.highlightValue(null)
             chart.invalidate()
         }

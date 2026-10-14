@@ -362,8 +362,16 @@ class LinePoint {
 ///
 /// This is not a data point. It has no y value, so a payout label can sit on a
 /// date without pulling the market-value axis down.
+///
+/// When [MarkerConfig.enabled] is true, tapping the drawn label shows [tooltip],
+/// or [label] when [tooltip] is null, in the chart marker.
 class XAxisMark {
-  const XAxisMark({required this.x, required this.label, this.color});
+  const XAxisMark({
+    required this.x,
+    required this.label,
+    this.color,
+    this.tooltip,
+  });
 
   /// Same x scale as [LinePoint.x], such as milliseconds since epoch.
   final double x;
@@ -374,11 +382,17 @@ class XAxisMark {
   /// Optional label color. When null, the native chart uses its axis label color.
   final Color? color;
 
+  /// Text shown in the marker when the label is tapped.
+  ///
+  /// When null, the marker shows [label].
+  final String? tooltip;
+
   Map<String, Object?> toMap() {
     return {
       'x': x,
       'label': label,
       'color': color?.toARGB32(),
+      'tooltip': tooltip,
     };
   }
 }

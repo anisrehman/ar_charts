@@ -23,7 +23,19 @@ void main() {
   test('XAxisMark serializes x and label without a y value', () {
     const mark = XAxisMark(x: 10, label: r'$3.2K', color: Color(0xFF00AA00));
 
-    expect(mark.toMap(), {'x': 10, 'label': r'$3.2K', 'color': 0xFF00AA00});
+    expect(mark.toMap(), {
+      'x': 10,
+      'label': r'$3.2K',
+      'color': 0xFF00AA00,
+      'tooltip': null,
+    });
+    expect(mark.toMap().containsKey('y'), isFalse);
+  });
+
+  test('XAxisMark serializes a tooltip that differs from the label', () {
+    const mark = XAxisMark(x: 10, label: 'Div', tooltip: r'$3.2K');
+
+    expect(mark.toMap()['tooltip'], r'$3.2K');
     expect(mark.toMap().containsKey('y'), isFalse);
   });
 
